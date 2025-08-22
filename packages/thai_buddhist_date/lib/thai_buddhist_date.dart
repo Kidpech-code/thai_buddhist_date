@@ -1,4 +1,4 @@
-library thai_buddhist_date;
+library;
 
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -12,7 +12,8 @@ DateTime parse(String input, {String format = 'yyyy-MM-dd'}) {
     final dt = DateFormat(format).parseStrict(input);
     // If year looks like BE (>= 2400), convert to CE
     if (dt.year >= 2400) {
-      return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond);
+      return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute,
+          dt.second, dt.millisecond, dt.microsecond);
     }
     return dt;
   } catch (_) {
@@ -24,11 +25,13 @@ DateTime parse(String input, {String format = 'yyyy-MM-dd'}) {
     // If year looks like BE (>=2400), convert
     final normalizedYear = year >= 2400 ? year - 543 : year;
     // Replace back
-    final attempted = input.replaceFirst(m.group(0)!, normalizedYear.toString());
+    final attempted =
+        input.replaceFirst(m.group(0)!, normalizedYear.toString());
     try {
       return DateFormat(format).parseStrict(attempted);
     } catch (e) {
-      throw FormatException('Unrecognized date format after normalization: $attempted');
+      throw FormatException(
+          'Unrecognized date format after normalization: $attempted');
     }
   }
 }
@@ -63,12 +66,14 @@ String _tokenAwareFormat(DateTime dt, String pattern, {String? locale}) {
     if (!inQuote && c == 'y') {
       // capture run of y's
       var j = i;
-      while (j < pattern.length && pattern[j] == 'y') j++;
+      while (j < pattern.length && pattern[j] == 'y') {
+        j++;
+      }
       final run = pattern.substring(i, j);
       final placeholder = '__BE_YEAR${tokenIndex}__';
       tokens.add(run);
       // wrap placeholder in single quotes so DateFormat treats it as a literal
-      buf.write("'${placeholder}'");
+      buf.write("'$placeholder'");
       tokenIndex++;
       i = j;
       continue;
@@ -78,7 +83,9 @@ String _tokenAwareFormat(DateTime dt, String pattern, {String? locale}) {
   }
 
   final modifiedPattern = buf.toString();
-  final base = (locale == null || locale.isEmpty) ? DateFormat(modifiedPattern).format(dt) : DateFormat(modifiedPattern, loc).format(dt);
+  final base = (locale == null || locale.isEmpty)
+      ? DateFormat(modifiedPattern).format(dt)
+      : DateFormat(modifiedPattern, loc).format(dt);
 
   // Replace placeholders with BE year formatted according to token length
   var result = base;
@@ -117,19 +124,23 @@ class ThaiCalendar {
     },
     'slash': (d) => '${_pad2(d.day)}/${_pad2(d.month)}/${d.year + 543}',
     'dash': (d) => '${_pad2(d.day)}-${_pad2(d.month)}-${d.year + 543}',
-    'iso': (d) => '${(d.year + 543).toString().padLeft(4, '0')}-${_pad2(d.month)}-${_pad2(d.day)}',
+    'iso': (d) =>
+        '${(d.year + 543).toString().padLeft(4, '0')}-${_pad2(d.month)}-${_pad2(d.day)}',
     'compact': (d) => _pad2(d.day) + _pad2(d.month) + (d.year + 543).toString(),
-    'slashTime': (d) => '${_pad2(d.day)}/${_pad2(d.month)}/${d.year + 543} ${_pad2(d.hour)}:${_pad2(d.minute)}',
+    'slashTime': (d) =>
+        '${_pad2(d.day)}/${_pad2(d.month)}/${d.year + 543} ${_pad2(d.hour)}:${_pad2(d.minute)}',
     'isoTime': (d) =>
         '${(d.year + 543).toString().padLeft(4, '0')}-${_pad2(d.month)}-${_pad2(d.day)}T${_pad2(d.hour)}:${_pad2(d.minute)}:${_pad2(d.second)}',
-    'timeMs': (d) => '${_pad2(d.hour)}:${_pad2(d.minute)}:${_pad2(d.second)}.${d.millisecond.toString().padLeft(3, '0')}',
+    'timeMs': (d) =>
+        '${_pad2(d.hour)}:${_pad2(d.minute)}:${_pad2(d.second)}.${d.millisecond.toString().padLeft(3, '0')}',
   };
 
   static String _pad2(int n) => n.toString().padLeft(2, '0');
   static String _replaceYearWithBE(String s, int ceYear) {
     final be = (ceYear + 543).toString();
     final ce = ceYear.toString();
-    return s.replaceAllMapped(RegExp(r'\d{4}'), (m) => m.group(0) == ce ? be : m.group(0)!);
+    return s.replaceAllMapped(
+        RegExp(r'\d{4}'), (m) => m.group(0) == ce ? be : m.group(0)!);
   }
 
   static String format(DateTime date, {String pattern = 'fullText'}) {
@@ -163,7 +174,8 @@ class ThaiCalendar {
       if (hasBE != null) {
         final y = int.tryParse(hasBE);
         if (y != null && y >= 2400) {
-          return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond);
+          return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute,
+              dt.second, dt.millisecond, dt.microsecond);
         }
       }
       return dt;
@@ -175,7 +187,8 @@ class ThaiCalendar {
   /// Convenience async wrapper that ensures locale data is initialized
   /// and then formats the date. Useful when you don't want to call
   /// `ensureInitialized()` manually.
-  static Future<String> formatInitialized(DateTime date, {String pattern = 'fullText'}) async {
+  static Future<String> formatInitialized(DateTime date,
+      {String pattern = 'fullText'}) async {
     await ensureInitialized();
     return format(date, pattern: pattern);
   }
@@ -199,7 +212,8 @@ class ThaiCalendar {
 
     DateTime adjustIfBE(DateTime dt) {
       if (hasBEYear(input)) {
-        return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond);
+        return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute,
+            dt.second, dt.millisecond, dt.microsecond);
       }
       return dt;
     }
@@ -268,11 +282,13 @@ class ThaiCalendar {
     return null;
   }
 
-  static String? convert(String input, {String toPattern = 'fullText', String? fromPattern}) {
+  static String? convert(String input,
+      {String toPattern = 'fullText', String? fromPattern}) {
     final dt = parse(input, customPattern: fromPattern);
     if (dt == null) return null;
     return format(dt, pattern: toPattern);
   }
 
-  static bool isValid(String input, {String? pattern}) => parse(input, customPattern: pattern) != null;
+  static bool isValid(String input, {String? pattern}) =>
+      parse(input, customPattern: pattern) != null;
 }

@@ -49,7 +49,8 @@ void main() {
   test('DateFormat skeleton yMMMMEEEEd parseWith', () async {
     await ThaiCalendar.ensureInitialized();
     final df = DateFormat.yMMMMEEEEd('th');
-    final sample = df.format(DateTime(2025, 8, 22)).replaceFirst('2025', '2568');
+    final sample =
+        df.format(DateTime(2025, 8, 22)).replaceFirst('2025', '2568');
     final parsed = ThaiCalendar.parseWith(df, sample);
     expect(parsed?.year, equals(2025));
     expect(parsed?.month, equals(8));
