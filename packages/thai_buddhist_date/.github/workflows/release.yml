@@ -1,0 +1,132 @@
+name: Release and Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_path:
+        description: Path to package to publish
+        default: packages/thai_buddhist_date
+        required: true
+      version:
+        description: Optional. If provided, set this version in pubspec.yaml before tagging/publishing.
+        required: false
+      tag_prefix:
+        description: Optional tag prefix (e.g., v)
+        default: v
+        required: true
+      tag_name:
+        description: Optional explicit tag name. If omitted, uses <tag_prefix><version-from-pubspec>.
+        required: false
+      publish:
+        description: Publish to pub.dev (true) or skip (false)
+        type: boolean
+        default: true
+        required: true
+      dry_run:
+        description: Run dart pub publish --dry-run instead of publishing
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_PATH: ${{ inputs.package_path }}
+      TAG_PREFIX: ${{ inputs.tag_prefix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Show Dart version
+        run: dart --version
+
+      - name: Set version (optional)
+        if: ${{ inputs.version != '' }}
+        working-directory: ${{ env.PACKAGE_PATH }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          NEW_VERSION="${{ inputs.version }}"
+          # Replace version line in pubspec.yaml (expects single 'version:' line)
+          sed -i "" -e "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml || sed -i -e "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml
+          echo "Bumped version to ${NEW_VERSION}"
+
+      - name: Format, Analyze, Test
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: |
+          dart format .
+          dart analyze
+          dart test
+
+      - name: Commit changes (if any)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A
+            git commit -m "chore: release prep${{ inputs.version != '' && format(' {0}', inputs.version) || '' }}"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Determine version
+        id: ver
+        working-directory: ${{ env.PACKAGE_PATH }}
+        shell: bash
+        run: |
+          VERSION_FROM_PUBSPEC=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "version=${VERSION_FROM_PUBSPEC}" >> $GITHUB_OUTPUT
+          echo "Detected version: ${VERSION_FROM_PUBSPEC}"
+
+      - name: Compute tag name
+        id: tag
+        shell: bash
+        run: |
+          if [[ -n "${{ inputs.tag_name }}" ]]; then
+            TAG_NAME="${{ inputs.tag_name }}"
+          else
+            TAG_NAME="${TAG_PREFIX}${{ steps.ver.outputs.version }}"
+          fi
+          echo "name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "Tag to create: ${TAG_NAME}"
+
+      - name: Create and push tag
+        run: |
+          git tag -f "${{ steps.tag.outputs.name }}"
+          git push origin "${{ steps.tag.outputs.name }}" -f
+
+      - name: Publish (dry-run)
+        if: ${{ inputs.publish && inputs.dry_run }}
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: dart pub publish --dry-run
+
+      - name: Prepare pub.dev credentials
+        if: ${{ inputs.publish && !inputs.dry_run }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [[ -z "${PUB_CREDENTIALS}" ]]; then
+            echo "ERROR: PUB_CREDENTIALS secret is not set."
+            echo "Create a GitHub secret named PUB_CREDENTIALS that contains the contents of ~/.pub-cache/credentials.json"
+            exit 1
+          fi
+          mkdir -p ~/.pub-cache
+          printf "%s" "${PUB_CREDENTIALS}" > ~/.pub-cache/credentials.json
+          chmod 600 ~/.pub-cache/credentials.json
+
+      - name: Publish to pub.dev
+        if: ${{ inputs.publish && !inputs.dry_run }}
+        working-directory: ${{ env.PACKAGE_PATH }}
+        run: dart pub publish -f
