@@ -4,12 +4,15 @@
 [![CI](https://github.com/Kidpech-code/thai_buddhist_date/actions/workflows/ci.yml/badge.svg)](https://github.com/Kidpech-code/thai_buddhist_date/actions)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A small Dart package to parse and format Thai Buddhist (พ.ศ.) dates.
+A tiny Dart library for working with Thai Buddhist Era dates (พ.ศ.), with selectable output era (พ.ศ./ค.ศ.), safe token‑aware formatting, flexible parsing, and optional Flutter widgets.
 
-## Features
+## Highlights
 
-- format(DateTime) -> outputs year in พ.ศ. (adds +543)
-- parse(String) -> accepts both ค.ศ. (e.g. 2025-08-22) and พ.ศ. (e.g. 2568-08-22)
+- Format with BE or CE: `format(DateTime, era: ...)` outputs the year in พ.ศ. (BE) or ค.ศ. (CE).
+- Parse both BE and CE seamlessly: `parse(String)` detects BE years (>= 2400) and normalizes to a CE `DateTime` internally.
+- Token‑aware formatter: Only the year tokens are replaced when outputting BE, so patterns like `yyyy-MM-dd` or `MMMM yyyy` remain safe.
+- ThaiCalendar helpers: Locale‑aware utilities with `ensureInitialized()`, `format()`, `formatWith(DateFormat)`, `formatInitialized()`, and more.
+- Flutter extras (optional): A lightweight month calendar and a set of date pickers (single, date‑time with preview, range, multi‑date, and fullscreen) with theming hooks.
 
 ## Install
 
@@ -17,7 +20,7 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.1.2
+  thai_buddhist_date: ^0.1.4
 ```
 
 Then run `dart pub get` or `flutter pub get`.
@@ -28,69 +31,18 @@ Then run `dart pub get` or `flutter pub get`.
 import 'package:thai_buddhist_date/thai_buddhist_date.dart';
 
 void main() {
-  final dt = parse('2568-08-22'); // detects BE and returns 2025-08-22 in DateTime
-  print(format(dt)); // prints '2568-08-22'
+  // Parse either BE or CE and get a DateTime (internally CE).
+  final dt = parse('2568-08-22');
+
+  // Format in BE (default) or CE.
+  print(format(dt));                 // 2568-08-22
+  print(format(dt, era: Era.ce));    // 2025-08-22
 }
 ```
 
-ตัวอย่าง (ภาษาไทย) — แนะนำให้เรียก `ensureInitialized()` ใน environment ที่ต้องการ locale-aware formatting:
+## Locale initialization for Flutter
 
-```dart
-import 'package:thai_buddhist_date/thai_buddhist_date.dart';
-
-Future<void> main() async {
-  // โหลดข้อมูล locale สำหรับการฟอร์แมตภาษาไทย (ต้องรอให้เสร็จ)
-  await ThaiCalendar.ensureInitialized();
-
-  final dt = DateTime(2025, 8, 22);
-  // ฟอร์แมตเป็นข้อความที่มีปี พ.ศ.
-  print(ThaiCalendar.format(dt, pattern: 'fullText')); // วันศุกร์ที่ 22 สิงหาคม 2568
-
-  // แปลงจากสตริงที่อาจเป็น พ.ศ. หรือ ค.ศ.
-  final parsed = ThaiCalendar.parse('2568-08-22');
-  if (parsed != null) {
-    print(parsed.toIso8601String()); // 2025-08-22T00:00:00.000
-  }
-}
-```
-
-## Notes
-
-- The parser looks for a 4-digit year and treats years >= 2400 as BE (พ.ศ.).
-- This is conservative and works for usual Thai BE dates.
-
-## รองรับแพลตฟอร์ม
-
-- Dart/Flutter SDK (see environment in `pubspec.yaml`)
-- Platforms: Android, iOS, Linux, macOS, Web, Windows
-
-## การเผยแพร่ (publish)
-
-- ตรวจสอบ `pubspec.yaml` ให้ครบ (homepage, repository, version)
-- ลบ `publish_to: none` หากต้องการปล่อยขึ้น pub.dev
-- เพิ่ม LICENSE และ CHANGELOG (มีทั้งสองไฟล์ใน repo)
-
-## ตัวอย่าง helpers
-
-```dart
-import 'package:thai_buddhist_date/thai_buddhist_date.dart';
-
-Future<void> main() async {
-  // async: โหลด locale แล้วฟอร์แมต
-  final out = await ThaiCalendar.formatInitialized(DateTime(2025,8,22));
-  print(out); // วันศุกร์ที่ 22 สิงหาคม 2568
-
-  // sync: ไม่ต้องใช้ locale (ตัวอย่างสำหรับ numeric patterns)
-  final sync = ThaiCalendar.formatSync(DateTime(2025,8,22), pattern: 'yyyy-MM-dd');
-  print(sync); // 2568-08-22
-}
-```
-
-## ข้อควรระวังสำหรับ Flutter
-
-- ในแอป Flutter ให้เรียก `await ThaiCalendar.ensureInitialized()` ใน `main()` ก่อน `runApp(...)` เพื่อให้ DateFormat ที่ใช้ locale ภาษาไทยทำงานได้ถูกต้อง.
-
-### ตัวอย่างการใช้งานใน Flutter (เรียกใน main ก่อน runApp)
+If you need localized month/weekday names (e.g., `MMMM yyyy`), initialize the Thai locale before building the UI:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -101,15 +53,128 @@ Future<void> main() async {
   await ThaiCalendar.ensureInitialized();
   runApp(const MyApp());
 }
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime(2025, 8, 22);
-    final label = ThaiCalendar.format(now, pattern: 'fullText');
-    return MaterialApp(home: Scaffold(body: Center(child: Text(label))));
-  }
-}
 ```
+
+## ThaiCalendar helpers
+
+Convenience APIs for common tasks:
+
+- `ThaiCalendar.ensureInitialized()` — loads `th_TH` locale data for `intl`.
+- `ThaiCalendar.format(date, pattern: 'fullText', era: Era.be)` — localized formatting using pre‑defined patterns.
+- `ThaiCalendar.formatWith(DateFormat df, date, {era})` — use your own `DateFormat` and still get BE output safely.
+- `ThaiCalendar.formatInitialized(...)` — await locale init and then format.
+- `ThaiCalendar.formatSync(...)` — fast numeric‑only formatting without locale cost.
+
+Example:
+
+```dart
+await ThaiCalendar.ensureInitialized();
+final d = DateTime(2025, 8, 22);
+print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.be)); // วันศุกร์ที่ 22 สิงหาคม 2568
+print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.ce)); // Friday, 22 สิงหาคม 2025 (localized)
+```
+
+## Flutter widgets (optional)
+
+This package ships a simple calendar and multiple pickers. They’re intentionally lightweight so you can customize them freely.
+
+### Month calendar
+
+`BuddhistGregorianCalendar` renders a single‑month grid that formats the header with BE or CE.
+
+```dart
+BuddhistGregorianCalendar(
+  era: Era.be,                 // or Era.ce
+  selectedDate: _selected,
+  onDateSelected: (d) => setState(() => _selected = d),
+  locale: 'th_TH',
+  firstDate: DateTime(1900,1,1),
+  lastDate: DateTime(2100,12,31),
+  headerBuilder: customHeader?, // optional: build your own header
+  dayBuilder: customDay?,       // optional: build your own day cells
+)
+```
+
+### Pickers
+
+- Single date dialog: `showThaiDatePicker(...)`
+- Date‑time dialog with live preview and `formatString`: `showThaiDateTimePicker(...)`
+- Convenience wrappers that return formatted strings: `showThaiDatePickerFormatted(...)`, `showThaiDateTimePickerFormatted(...)`
+- Range selection dialog: `showThaiDateRangePicker(...)`
+- Multi‑date selection dialog: `showThaiMultiDatePicker(...)`
+- Fullscreen variant (single): `showThaiDatePickerFullscreen(...)`
+
+All dialogs support theming/spacing parameters: `shape`, `titlePadding`, `contentPadding`, `actionsPadding`, `insetPadding`.
+
+Basic usage:
+
+```dart
+// Single date
+final picked = await showThaiDatePicker(
+  context,
+  initialDate: DateTime.now(),
+  era: Era.be,
+  locale: 'th_TH',
+);
+
+// Date-time with preview (custom preview format)
+final dt = await showThaiDateTimePicker(
+  context,
+  initialDateTime: DateTime.now(),
+  era: Era.ce,
+  locale: 'th_TH',
+  formatString: 'dd/MM/yyyy HH:mm',
+);
+
+// Range (dialog)
+final range = await showThaiDateRangePicker(context, era: Era.be, locale: 'th_TH');
+
+// Multi-date
+final multiple = await showThaiMultiDatePicker(context, era: Era.be, locale: 'th_TH');
+
+```
+
+API cheatsheet:
+
+```dart
+Future<DateTime?> showThaiDatePicker(...)
+Future<DateTime?> showThaiDateTimePicker(..., { String formatString = 'dd/MM/yyyy HH:mm' })
+Future<String?>  showThaiDatePickerFormatted(..., { String formatString = 'dd/MM/yyyy' })
+Future<String?>  showThaiDateTimePickerFormatted(..., { String formatString = 'dd/MM/yyyy HH:mm' })
+Future<DateTimeRange?> showThaiDateRangePicker(...)
+Future<Set<DateTime>?> showThaiMultiDatePicker(...)
+Future<DateTime?> showThaiDatePickerFullscreen(...)
+```
+
+### Customization and theming
+
+All dialogs accept common parameters to match your app’s style:
+
+- shape, titlePadding, contentPadding, actionsPadding, insetPadding
+- width, height (where applicable)
+- headerBuilder and dayBuilder for custom header/day cell UIs
+- firstDate and lastDate to constrain selectable dates
+
+The date‑time dialog also exposes `formatString` to control the live preview text (the returned value is still a `DateTime`).
+
+### Behavior and notes
+
+- All pickers support output in พ.ศ. or ค.ศ. via the `era` parameter.
+- The calendar respects `firstDate` and `lastDate` and disables days outside this window.
+- For localized month/weekday names, call `await ThaiCalendar.ensureInitialized()` before rendering UI.
+
+### Error handling and edge cases
+
+- Parsing uses a simple heuristic for BE years (>= 2400). If your input is ambiguous or uses a custom pattern, prefer `ThaiCalendar.parseWith(DateFormat, input)` or specify an explicit format.
+- All UI pickers are timezone-agnostic and operate on `DateTime` values you provide; be mindful of UTC vs local when storing or comparing.
+- The token‑aware formatter replaces only year tokens; other tokens are left to `intl` for correct localization.
+
+## Notes
+
+- The formatter is token‑aware: it only replaces year tokens (e.g., `y`, `yy`, `yyyy`) to BE values. Other fields (month/day/weekday) are left to `intl` so localized output stays correct.
+- Parsing heuristics treat years `>= 2400` as BE. If your inputs are ambiguous or custom, prefer `ThaiCalendar.parseWith(DateFormat, input)` with an explicit pattern.
+- For best results with Thai month/day names in Flutter, call `await ThaiCalendar.ensureInitialized()` before rendering widgets.
+
+## License
+
+MIT

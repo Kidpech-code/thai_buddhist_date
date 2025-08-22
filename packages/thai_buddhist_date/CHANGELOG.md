@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 - Docs cleanup and examples update
+
+- Remove Bottom Sheet pickers from package features and examples to align with current scope.
+- Update demo and package READMEs accordingly.
+- No API or behavior changes in the core library.
+
 ## 0.1.2 - Lint/format cleanup
 
 - Fix while-block lint and ensure package is dart formatted.

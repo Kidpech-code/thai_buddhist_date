@@ -1,122 +1,194 @@
 import 'package:flutter/material.dart';
 
-void main() {
+import 'widgets/buddhist_gregorian_calendar.dart';
+import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
+import 'widgets/pickers.dart'
+    show
+        showThaiDatePicker,
+        showThaiDateTimePicker,
+        showThaiMultiDatePicker,
+        showThaiDatePickerFullscreen,
+        showThaiDatePickerFormatted,
+        showThaiDateTimePickerFormatted;
+
+Future<void> main() async {
+  // Ensure Thai locale data is loaded for month/weekday names
+  WidgetsFlutterBinding.ensureInitialized();
+  await tbd.ThaiCalendar.ensureInitialized();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Thai Buddhist Date Calendar',
+      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo)),
+      home: const MyHomePage(title: 'Calendar (พ.ศ./ค.ศ.)'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  tbd.Era _era = tbd.Era.be;
+  DateTime? _selected;
+  DateTimeRange? _range;
+  Set<DateTime>? _multi;
+  String? _formattedOut;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          DropdownButton<tbd.Era>(
+            value: _era,
+            underline: const SizedBox.shrink(),
+            onChanged: (e) => setState(() => _era = e ?? tbd.Era.be),
+            items: const [
+              DropdownMenuItem(value: tbd.Era.be, child: Text('พ.ศ.')),
+              DropdownMenuItem(value: tbd.Era.ce, child: Text('ค.ศ.')),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(12.0),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BuddhistGregorianCalendar(era: _era, selectedDate: _selected, onDateSelected: (d) => setState(() => _selected = d), locale: 'th_TH'),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Text('เลือกวันที่:'),
+                const SizedBox(width: 8),
+                Text(_selected == null ? '-' : tbd.format(_selected!, format: 'dd/MM/yyyy', era: _era, locale: 'th_TH')),
+              ],
+            ),
+            if (_range != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Text('ช่วงวันที่:'),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${tbd.format(_range!.start, format: 'dd/MM/yyyy', era: _era, locale: 'th_TH')} - '
+                    '${tbd.format(_range!.end, format: 'dd/MM/yyyy', era: _era, locale: 'th_TH')}',
+                  ),
+                ],
+              ),
+            ],
+            if (_multi != null) ...[
+              const SizedBox(height: 8),
+              Row(children: [const Text('หลายวันที่:'), const SizedBox(width: 8), Text(_multi!.isEmpty ? '-' : '${_multi!.length} รายการ')]),
+              Padding(
+                padding: const EdgeInsets.only(left: 88),
+                child: Text(
+                  _multi!.isEmpty
+                      ? ''
+                      : (() {
+                          final sorted = _multi!.toList()..sort((a, b) => a.compareTo(b));
+                          final shown = sorted.take(3).map((d) => tbd.format(d, format: 'dd/MM', era: _era, locale: 'th_TH')).join(', ');
+                          final more = sorted.length > 3 ? ' (+${sorted.length - 3} more)' : '';
+                          return '$shown$more';
+                        })(),
+                ),
+              ),
+            ],
+            if (_formattedOut != null) ...[
+              const SizedBox(height: 8),
+              Row(children: [const Text('Formatted:'), const SizedBox(width: 8), Text(_formattedOut!)]),
+            ],
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: () async {
+                    final picked = await showThaiDatePicker(context, initialDate: _selected ?? DateTime.now(), era: _era, locale: 'th_TH');
+                    if (picked != null) setState(() => _selected = picked);
+                  },
+                  icon: const Icon(Icons.event),
+                  label: const Text('เลือกวันที่ (Dialog)'),
+                ),
+                FilledButton.icon(
+                  onPressed: () async {
+                    final picked = await showThaiDateTimePicker(
+                      context,
+                      initialDateTime: _selected ?? DateTime.now(),
+                      era: _era,
+                      locale: 'th_TH',
+                      formatString: 'dd MMM yyyy HH:mm',
+                    );
+                    if (picked != null) setState(() => _selected = picked);
+                  },
+                  icon: const Icon(Icons.schedule),
+                  label: const Text('เลือกวันและเวลา (Dialog)'),
+                ),
+
+                FilledButton.icon(
+                  onPressed: () async {
+                    final m = await showThaiMultiDatePicker(context, era: _era, locale: 'th_TH');
+                    if (m != null) setState(() => _multi = m);
+                  },
+                  icon: const Icon(Icons.event_repeat),
+                  label: const Text('หลายวันที่ (Dialog)'),
+                ),
+                FilledButton.icon(
+                  onPressed: () async {
+                    final picked = await showThaiDatePickerFullscreen(context, initialDate: _selected ?? DateTime.now(), era: _era, locale: 'th_TH');
+                    if (picked != null) setState(() => _selected = picked);
+                  },
+                  icon: const Icon(Icons.fullscreen),
+                  label: const Text('เลือกวันที่ (Fullscreen)'),
+                ),
+                FilledButton.icon(
+                  onPressed: () async {
+                    final out = await showThaiDatePickerFormatted(
+                      context,
+                      initialDate: _selected ?? DateTime.now(),
+                      era: _era,
+                      locale: 'th_TH',
+                      formatString: 'dd/MM/yyyy',
+                    );
+                    if (out != null) setState(() => _formattedOut = out);
+                  },
+                  icon: const Icon(Icons.output),
+                  label: const Text('ผลลัพธ์เป็น String (วันที่)'),
+                ),
+                FilledButton.icon(
+                  onPressed: () async {
+                    final out = await showThaiDateTimePickerFormatted(
+                      context,
+                      initialDateTime: _selected ?? DateTime.now(),
+                      era: _era,
+                      locale: 'th_TH',
+                      formatString: 'dd/MM/yyyy HH:mm',
+                    );
+                    if (out != null) setState(() => _formattedOut = out);
+                  },
+                  icon: const Icon(Icons.text_fields),
+                  label: const Text('ผลลัพธ์เป็น String (วันเวลา)'),
+                ),
+              ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

@@ -1,4 +1,4 @@
-library;
+// ignore_for_file: unnecessary_library_name
 
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -36,10 +36,23 @@ DateTime parse(String input, {String format = 'yyyy-MM-dd'}) {
   }
 }
 
-/// Formats a [DateTime] to Thai Buddhist year (พ.ศ.) string using [format].
-/// Example: DateTime(2025,8,22) with format 'yyyy-MM-dd' => '2568-08-22'
-String format(DateTime dt, {String format = 'yyyy-MM-dd'}) {
-  return _tokenAwareFormat(dt, format);
+/// Choose which era to output when formatting.
+enum Era { be, ce }
+
+/// Formats a [DateTime] using the given [format] and [era].
+/// - Era.be: output Thai Buddhist year (พ.ศ.), e.g., 2568
+/// - Era.ce: output Gregorian year (ค.ศ.), e.g., 2025
+/// Example: DateTime(2025,8,22) with format 'yyyy-MM-dd'
+/// - era: Era.be => '2568-08-22'
+/// - era: Era.ce => '2025-08-22'
+String format(DateTime dt,
+    {String format = 'yyyy-MM-dd', Era era = Era.be, String? locale}) {
+  if (era == Era.ce) {
+    return (locale == null || locale.isEmpty)
+        ? DateFormat(format).format(dt)
+        : DateFormat(format, locale).format(dt);
+  }
+  return _tokenAwareFormat(dt, format, locale: locale);
 }
 
 /// Token-aware formatter that replaces only the year tokens (y, yy, yyyy, etc.)
@@ -143,24 +156,56 @@ class ThaiCalendar {
         RegExp(r'\d{4}'), (m) => m.group(0) == ce ? be : m.group(0)!);
   }
 
-  static String format(DateTime date, {String pattern = 'fullText'}) {
+  static String format(
+    DateTime date, {
+    String pattern = 'fullText',
+    Era era = Era.be,
+  }) {
     if (_formats.containsKey(pattern)) {
-      return _formats[pattern]!(date);
+      final base = _formats[pattern]!(date);
+      if (era == Era.ce) {
+        // When CE requested for predefined Thai formats: regenerate without BE replacement
+        if (pattern == 'fullText') {
+          return DateFormat.yMMMMEEEEd(_locale).format(date);
+        } else if (pattern == 'long') {
+          return DateFormat.yMMMMd(_locale).format(date);
+        } else if (pattern == 'slash') {
+          return '${_pad2(date.day)}/${_pad2(date.month)}/${date.year}';
+        } else if (pattern == 'dash') {
+          return '${_pad2(date.day)}-${_pad2(date.month)}-${date.year}';
+        } else if (pattern == 'iso') {
+          return '${date.year.toString().padLeft(4, '0')}-${_pad2(date.month)}-${_pad2(date.day)}';
+        } else if (pattern == 'compact') {
+          return _pad2(date.day) + _pad2(date.month) + date.year.toString();
+        } else if (pattern == 'slashTime') {
+          return '${_pad2(date.day)}/${_pad2(date.month)}/${date.year} ${_pad2(date.hour)}:${_pad2(date.minute)}';
+        } else if (pattern == 'isoTime') {
+          return '${date.year.toString().padLeft(4, '0')}-${_pad2(date.month)}-${_pad2(date.day)}T${_pad2(date.hour)}:${_pad2(date.minute)}:${_pad2(date.second)}';
+        } else if (pattern == 'timeMs') {
+          return '${_pad2(date.hour)}:${_pad2(date.minute)}:${_pad2(date.second)}.${date.millisecond.toString().padLeft(3, '0')}';
+        }
+      }
+      return base;
     }
     final s = DateFormat(pattern, _locale).format(date);
-    return _replaceYearWithBE(s, date.year);
+    return era == Era.be ? _replaceYearWithBE(s, date.year) : s;
   }
 
   /// Format using an explicit [DateFormat] instance. This lets callers
   /// create DateFormat via constructors/skeletons (e.g. DateFormat.yMMMMd('th'))
   /// and pass it directly. The year tokens in the DateFormat's pattern will
   /// be replaced with BE years in a token-aware way.
-  static String formatWith(DateFormat df, DateTime date) {
+  static String formatWith(DateFormat df, DateTime date, {Era era = Era.be}) {
     final pattern = df.pattern ?? '';
     // Use the df to format non-year parts by creating a modified pattern where
     // year tokens are wrapped as literals placeholders, then replace placeholders
     // with BE year according to token length.
     final loc = (df.locale.isEmpty) ? '' : df.locale;
+    if (era == Era.ce) {
+      return (loc.isEmpty)
+          ? DateFormat(pattern).format(date)
+          : DateFormat(pattern, loc).format(date);
+    }
     return _tokenAwareFormat(date, pattern, locale: loc);
   }
 
@@ -187,17 +232,27 @@ class ThaiCalendar {
   /// Convenience async wrapper that ensures locale data is initialized
   /// and then formats the date. Useful when you don't want to call
   /// `ensureInitialized()` manually.
-  static Future<String> formatInitialized(DateTime date,
-      {String pattern = 'fullText'}) async {
+  static Future<String> formatInitialized(
+    DateTime date, {
+    String pattern = 'fullText',
+    Era era = Era.be,
+  }) async {
     await ensureInitialized();
-    return format(date, pattern: pattern);
+    return format(date, pattern: pattern, era: era);
   }
 
   /// Synchronous format without relying on locale data. Only safe for
   /// numeric patterns (e.g., 'yyyy-MM-dd', 'dd/MM/yyyy'). Does not
   /// support localized month names.
-  static String formatSync(DateTime date, {String pattern = 'yyyy-MM-dd'}) {
-    // Use token-aware formatter without locale to avoid locale init.
+  static String formatSync(
+    DateTime date, {
+    String pattern = 'yyyy-MM-dd',
+    Era era = Era.be,
+  }) {
+    // For CE just format normally; for BE use token-aware without locale.
+    if (era == Era.ce) {
+      return DateFormat(pattern).format(date);
+    }
     return _tokenAwareFormat(date, pattern, locale: '');
   }
 
@@ -282,11 +337,15 @@ class ThaiCalendar {
     return null;
   }
 
-  static String? convert(String input,
-      {String toPattern = 'fullText', String? fromPattern}) {
+  static String? convert(
+    String input, {
+    String toPattern = 'fullText',
+    String? fromPattern,
+    Era toEra = Era.be,
+  }) {
     final dt = parse(input, customPattern: fromPattern);
     if (dt == null) return null;
-    return format(dt, pattern: toPattern);
+    return format(dt, pattern: toPattern, era: toEra);
   }
 
   static bool isValid(String input, {String? pattern}) =>
