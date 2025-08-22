@@ -1,13 +1,28 @@
 # thai_buddhist_date
 
+[![pub package](https://img.shields.io/pub/v/thai_buddhist_date.svg)](https://pub.dev/packages/thai_buddhist_date)
+[![CI](https://github.com/Kidpech-code/thai_buddhist_date/actions/workflows/ci.yml/badge.svg)](https://github.com/Kidpech-code/thai_buddhist_date/actions)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A small Dart package to parse and format Thai Buddhist (พ.ศ.) dates.
 
-Features:
+## Features
 
 - format(DateTime) -> outputs year in พ.ศ. (adds +543)
 - parse(String) -> accepts both ค.ศ. (e.g. 2025-08-22) and พ.ศ. (e.g. 2568-08-22)
 
-Usage:
+## Install
+
+Add to your pubspec.yaml:
+
+```yaml
+dependencies:
+  thai_buddhist_date: ^0.1.0
+```
+
+Then run `dart pub get` or `flutter pub get`.
+
+## Quick start
 
 ```dart
 import 'package:thai_buddhist_date/thai_buddhist_date.dart';
@@ -39,23 +54,23 @@ Future<void> main() async {
 }
 ```
 
-Notes:
+## Notes
 
 - The parser looks for a 4-digit year and treats years >= 2400 as BE (พ.ศ.).
 - This is conservative and works for usual Thai BE dates.
 
-รองรับแพลตฟอร์ม
+## รองรับแพลตฟอร์ม
 
 - Dart/Flutter SDK (see environment in `pubspec.yaml`)
 - Platforms: Android, iOS, Linux, macOS, Web, Windows
 
-การเผยแพร่ (publish)
+## การเผยแพร่ (publish)
 
 - ตรวจสอบ `pubspec.yaml` ให้ครบ (homepage, repository, version)
 - ลบ `publish_to: none` หากต้องการปล่อยขึ้น pub.dev
 - เพิ่ม LICENSE และ CHANGELOG (มีทั้งสองไฟล์ใน repo)
 
-ตัวอย่าง helpers
+## ตัวอย่าง helpers
 
 ```dart
 import 'package:thai_buddhist_date/thai_buddhist_date.dart';
@@ -71,11 +86,11 @@ Future<void> main() async {
 }
 ```
 
-ข้อควรระวังสำหรับ Flutter
+## ข้อควรระวังสำหรับ Flutter
 
 - ในแอป Flutter ให้เรียก `await ThaiCalendar.ensureInitialized()` ใน `main()` ก่อน `runApp(...)` เพื่อให้ DateFormat ที่ใช้ locale ภาษาไทยทำงานได้ถูกต้อง.
 
-ตัวอย่างการใช้งานใน Flutter (เรียกใน main ก่อน runApp):
+### ตัวอย่างการใช้งานใน Flutter (เรียกใน main ก่อน runApp)
 
 ```dart
 import 'package:flutter/material.dart';

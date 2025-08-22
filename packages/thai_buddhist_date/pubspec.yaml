@@ -4,9 +4,9 @@ version: 0.1.0
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
-homepage: https://github.com/REPLACE_ME/thai_buddhist_date
-repository: https://github.com/REPLACE_ME/thai_buddhist_date.git
-issue_tracker: https://github.com/REPLACE_ME/thai_buddhist_date/issues
+homepage: https://github.com/Kidpech-code/thai_buddhist_date
+repository: https://github.com/Kidpech-code/thai_buddhist_date.git
+issue_tracker: https://github.com/Kidpech-code/thai_buddhist_date/issues
 topics:
   - thai
   - buddhist
