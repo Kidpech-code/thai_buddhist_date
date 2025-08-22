@@ -1,0 +1,20 @@
+name: thai_buddhist_date
+description: A small Dart package for parsing and formatting Thai Buddhist (พ.ศ.) dates.
+version: 0.1.0
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+homepage: https://github.com/REPLACE_ME/thai_buddhist_date
+repository: https://github.com/REPLACE_ME/thai_buddhist_date.git
+issue_tracker: https://github.com/REPLACE_ME/thai_buddhist_date/issues
+topics:
+  - thai
+  - buddhist
+  - be
+  - date
+
+dependencies:
+  intl: ^0.18.0
+
+dev_dependencies:
+  test: ^1.21.0
