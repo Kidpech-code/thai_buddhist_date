@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
                   era: tbd.Era.be,
                   locale: 'th_TH',
                 );
-                if (!mounted) return;
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Picked date: ${d ?? '-'}')),
                 );
@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
                   locale: 'th_TH',
                   formatString: 'dd/MM/yyyy HH:mm',
                 );
-                if (!mounted) return;
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Picked date-time: ${dt ?? '-'}')),
                 );
