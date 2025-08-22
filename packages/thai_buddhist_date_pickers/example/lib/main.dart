@@ -13,47 +13,58 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Thai Pickers Example')),
-        body: Center(
-          child: Builder(
-            builder: (ctx) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    final d = await showThaiDatePicker(
-                      ctx,
-                      initialDate: DateTime.now(),
-                      era: tbd.Era.be,
-                      locale: 'th_TH',
-                    );
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('Picked date: ${d ?? '-'}')),
-                    );
-                  },
-                  child: const Text('Pick a date (พ.ศ.)'),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () async {
-                    final dt = await showThaiDateTimePicker(
-                      ctx,
-                      initialDateTime: DateTime.now(),
-                      era: tbd.Era.ce,
-                      locale: 'th_TH',
-                      formatString: 'dd/MM/yyyy HH:mm',
-                    );
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('Picked date-time: ${dt ?? '-'}')),
-                    );
-                  },
-                  child: const Text('Pick date-time (ค.ศ.)'),
-                ),
-              ],
+    return const MaterialApp(home: HomePage());
+  }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Thai Pickers Example')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final d = await showThaiDatePicker(
+                  context,
+                  initialDate: DateTime.now(),
+                  era: tbd.Era.be,
+                  locale: 'th_TH',
+                );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Picked date: ${d ?? '-'}')),
+                );
+              },
+              child: const Text('Pick a date (พ.ศ.)'),
             ),
-          ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                final dt = await showThaiDateTimePicker(
+                  context,
+                  initialDateTime: DateTime.now(),
+                  era: tbd.Era.ce,
+                  locale: 'th_TH',
+                  formatString: 'dd/MM/yyyy HH:mm',
+                );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Picked date-time: ${dt ?? '-'}')),
+                );
+              },
+              child: const Text('Pick date-time (ค.ศ.)'),
+            ),
+          ],
         ),
       ),
     );
