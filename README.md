@@ -11,6 +11,11 @@ This repository contains a Flutter demo app that exercises the `thai_buddhist_da
 
 The reusable library lives under `packages/thai_buddhist_date`. The app in the repository root depends on that package via a path dependency and presents the widgets/features in a simple UI with an era switcher.
 
+## Related packages
+
+- Core library: `packages/thai_buddhist_date` — pub: https://pub.dev/packages/thai_buddhist_date
+- Pickers & calendar UI: `packages/thai_buddhist_date_pickers` — pub: https://pub.dev/packages/thai_buddhist_date_pickers
+
 ## Running
 
 1. Ensure you have Flutter installed and a device/simulator available.
@@ -37,6 +42,7 @@ The app initializes Thai locale data on startup (`ThaiCalendar.ensureInitialized
   - A fullscreen page,
   - Theming hooks: `shape`, paddings, `insetPadding`.
 - `packages/thai_buddhist_date` — The core library with token‑aware formatting/parsing and helper APIs.
+- `packages/thai_buddhist_date_pickers` — Extracted Flutter UI package (calendar and dialog pickers) published separately.
 
 ## Tests
 

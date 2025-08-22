@@ -6,6 +6,10 @@
 
 A tiny Dart library for working with Thai Buddhist Era dates (พ.ศ.), with selectable output era (พ.ศ./ค.ศ.), safe token‑aware formatting, flexible parsing, and optional Flutter widgets.
 
+Looking for calendar and dialog pickers? See the companion UI package:
+
+- thai_buddhist_date_pickers — https://pub.dev/packages/thai_buddhist_date_pickers
+
 ## Highlights
 
 - Format with BE or CE: `format(DateTime, era: ...)` outputs the year in พ.ศ. (BE) or ค.ศ. (CE).

@@ -1,0 +1,17 @@
+name: thai_buddhist_date_pickers_example
+publish_to: 'none'
+description: Minimal example app for thai_buddhist_date_pickers
+version: 1.0.0
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  thai_buddhist_date_pickers:
+    path: ../
+  thai_buddhist_date: ^0.1.4
+
+flutter:
+  uses-material-design: true
