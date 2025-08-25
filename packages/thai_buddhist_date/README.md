@@ -24,7 +24,7 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.2.0
+  thai_buddhist_date: ^0.2.1
 ```
 
 Then run `dart pub get` or `flutter pub get`.
@@ -84,6 +84,31 @@ final labelCE = ThaiCalendar.formatNow(pattern: 'fullText', era: Era.ce);
 
 // Async version that ensures locale data first
 final asyncLabel = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
+
+### Multi-language date/time/date&time
+
+- Pick any locale via the `locale:` parameter or set a default with `ThaiDateSettings.useLocale('fr')`.
+- Use the same API for date (yyyy-MM-dd), time (HH:mm), or combined (dd/MM/yyyy HH:mm).
+
+```dart
+// Set default locale globally (optional)
+ThaiDateSettings.useLocale('fr'); // French
+
+// Date only
+final frDate = ThaiCalendar.formatNow(pattern: 'yyyy-MM-dd');
+// Time only
+final frTime = ThaiCalendar.formatNow(pattern: 'HH:mm');
+// Date & Time
+final frDateTime = ThaiCalendar.formatNow(pattern: 'dd/MM/yyyy HH:mm');
+
+// Override per call with another language
+final esFull = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'es');
+final deShort = ThaiCalendar.formatNow(pattern: 'dd.MM.yyyy', locale: 'de');
+
+// Ensure localized month/day names when needed
+await ThaiCalendar.ensureInitialized('ja');
+final jaFull = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'ja');
+```
 
 ### Common recipes
 

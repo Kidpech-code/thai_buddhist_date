@@ -67,6 +67,9 @@ class ThaiDateSettings {
 
   static void useThai() => defaultLocale = 'th_TH';
   static void useEnglishUS() => defaultLocale = 'en_US';
+
+  /// Set any locale code directly, e.g. 'fr', 'ar', 'ja', 'zh', 'de'.
+  static void useLocale(String localeCode) => defaultLocale = localeCode;
 }
 
 /// Formats a [DateTime] using the given [format] and [era].
@@ -506,4 +509,40 @@ extension ThaiStringParsing on String {
     return ThaiCalendar.parse(this,
         customPattern: pattern, locale: locale, language: language);
   }
+}
+
+/// Common locale codes for convenience.
+/// Use with ThaiDateSettings.useLocale(...) or pass as `locale:` to APIs.
+class TbdLocales {
+  static const th = 'th_TH';
+  static const en = 'en_US';
+  static const sq = 'sq'; // Albanian
+  static const ar = 'ar'; // Arabic
+  static const hy = 'hy'; // Armenian
+  static const az = 'az'; // Azerbaijani
+  static const eu = 'eu'; // Basque
+  static const bn = 'bn'; // Bengali
+  static const bg = 'bg'; // Bulgarian
+  static const ca = 'ca'; // Catalan
+  static const zh = 'zh'; // Chinese (generic)
+  static const da = 'da'; // Danish
+  static const nl = 'nl'; // Dutch
+  static const fr = 'fr'; // French
+  static const de = 'de'; // German
+  static const he = 'he'; // Hebrew
+  static const id = 'id'; // Indonesian
+  static const it = 'it'; // Italian
+  static const ja = 'ja'; // Japanese
+  static const kk = 'kk'; // Kazakh
+  static const ko = 'ko'; // Korean
+  static const fa = 'fa'; // Persian
+  static const pl = 'pl'; // Polish
+  static const pt = 'pt'; // Portuguese
+  static const ru = 'ru'; // Russian
+  static const es = 'es'; // Spanish
+  static const sv = 'sv'; // Swedish
+  static const tr = 'tr'; // Turkish
+  static const vi = 'vi'; // Vietnamese
+  static const km = 'km'; // Khmer
+  static const hi = 'hi'; // Hindi (India)
 }
