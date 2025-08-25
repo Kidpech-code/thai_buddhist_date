@@ -24,7 +24,7 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.1.4
+  thai_buddhist_date: ^0.2.0
 ```
 
 Then run `dart pub get` or `flutter pub get`.
@@ -72,7 +72,7 @@ Convenience APIs for common tasks:
 
 Examples:
 
-```dart
+````dart
 await ThaiCalendar.ensureInitialized();
 final d = DateTime(2025, 8, 22);
 print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.be)); // วันศุกร์ที่ 22 สิงหาคม 2568
@@ -84,7 +84,37 @@ final labelCE = ThaiCalendar.formatNow(pattern: 'fullText', era: Era.ce);
 
 // Async version that ensures locale data first
 final asyncLabel = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
-```
+
+### Common recipes
+
+```dart
+import 'package:thai_buddhist_date/thai_buddhist_date.dart';
+
+// 1) Today in BE and CE
+final todayBE = ThaiCalendar.formatNow(pattern: 'dd/MM/yyyy', era: Era.be); // e.g. 25/08/2568
+final todayCE = ThaiCalendar.formatNow(pattern: 'dd/MM/yyyy', era: Era.ce); // e.g. 25/08/2025
+
+// 2) Localized full text (ensure locale first)
+await ThaiCalendar.ensureInitialized();
+final fullTh = ThaiCalendar.formatNow(pattern: 'fullText');          // วันจันทร์ที่ 25 สิงหาคม 2568
+final fullEn = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'en_US'); // Monday, August 25, 2025
+
+// 3) Switch defaults globally
+ThaiDateSettings.set(era: Era.be, language: ThaiLanguage.thai);
+final s1 = DateTime(2025, 8, 22).toThaiString(pattern: 'yyyy-MM-dd'); // 2568-08-22
+
+// 4) Numeric formatting (no locale cost)
+final fast = ThaiCalendar.formatSync(DateTime(2025, 8, 22), pattern: 'yyyy-MM-dd', era: Era.be); // 2568-08-22
+
+// 5) Parsing
+final d1 = ThaiCalendar.parse('22/08/2568', customPattern: 'dd/MM/yyyy'); // -> 2025-08-22
+final d2 = ThaiCalendar.parse('2025-08-22', customPattern: 'yyyy-MM-dd'); // -> 2025-08-22
+
+// 6) Convert patterns and eras
+final out = ThaiCalendar.convert('22/08/2568', fromPattern: 'dd/MM/yyyy', toPattern: 'yyyy-MM-dd', toEra: Era.ce); // 2025-08-22
+````
+
+````
 
 ## Ergonomic API (pro)
 
@@ -93,7 +123,7 @@ final asyncLabel = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
 ```dart
 // Choose defaults across your app
 ThaiDateSettings.set(era: Era.be, language: ThaiLanguage.thai); // or locale: 'en_US'
-```
+````
 
 - Quick language switch:
 
