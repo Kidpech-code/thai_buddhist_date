@@ -284,9 +284,8 @@ class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
       actions: [
         TextButton(onPressed: () => Navigator.of(context).pop<DateTimeRange?>(null), child: Text(widget.cancelText ?? 'ยกเลิก')),
         FilledButton(
-          onPressed: (_start != null && _end != null)
-              ? () => Navigator.of(context).pop<DateTimeRange?>(DateTimeRange(start: _start!, end: _end!))
-              : null,
+          onPressed:
+              (_start != null && _end != null) ? () => Navigator.of(context).pop<DateTimeRange?>(DateTimeRange(start: _start!, end: _end!)) : null,
           child: Text(widget.confirmText ?? 'ตกลง'),
         ),
       ],
@@ -664,9 +663,8 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
 
     Widget dayBuilder(BuildContext ctx, DateTime date, bool selected, bool disabled) {
       final picked = _contains(date);
-      final bg = disabled
-          ? Theme.of(ctx).disabledColor.withValues(alpha: 0.1)
-          : (picked ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18) : null);
+      final bg =
+          disabled ? Theme.of(ctx).disabledColor.withValues(alpha: 0.1) : (picked ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18) : null);
       final fg = disabled ? Theme.of(ctx).disabledColor : (picked ? Theme.of(ctx).colorScheme.primary : null);
       return Container(
         alignment: Alignment.center,
@@ -767,4 +765,103 @@ Future<Set<DateTime>?> showThaiMultiDatePicker(
       insetPadding: insetPadding,
     ),
   );
+}
+
+/// Fullscreen single-date picker using a scaffolded page.
+Future<DateTime?> showThaiDatePickerFullscreen(
+  BuildContext context, {
+  DateTime? initialDate,
+  DateTime? firstDate,
+  DateTime? lastDate,
+  tbd.Era era = tbd.Era.be,
+  String? locale = 'th_TH',
+  String? title,
+  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
+}) {
+  return Navigator.of(context).push<DateTime>(
+    MaterialPageRoute(
+      builder: (_) => _FullscreenPickerPage(
+        initialDate: initialDate,
+        firstDate: firstDate,
+        lastDate: lastDate,
+        era: era,
+        locale: locale,
+        title: title,
+        headerBuilder: headerBuilder,
+        dayBuilder: dayBuilder,
+      ),
+    ),
+  );
+}
+
+class _FullscreenPickerPage extends StatefulWidget {
+  const _FullscreenPickerPage({
+    this.initialDate,
+    this.firstDate,
+    this.lastDate,
+    this.era = tbd.Era.be,
+    this.locale = 'th_TH',
+    this.title,
+    this.headerBuilder,
+    this.dayBuilder,
+  });
+
+  final DateTime? initialDate;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
+  final tbd.Era era;
+  final String? locale;
+  final String? title;
+  final Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder;
+  final Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder;
+
+  @override
+  State<_FullscreenPickerPage> createState() => _FullscreenPickerPageState();
+}
+
+class _FullscreenPickerPageState extends State<_FullscreenPickerPage> {
+  DateTime? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialDate;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = widget.title ?? 'เลือกวันที่';
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          TextButton(
+            onPressed: _selected == null ? null : () => Navigator.of(context).pop<DateTime>(_selected),
+            child: const Text('ตกลง'),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: BuddhistGregorianCalendar(
+              era: widget.era,
+              locale: widget.locale,
+              initialMonth: (_selected ?? widget.initialDate) ?? DateTime.now(),
+              selectedDate: _selected,
+              firstDate: widget.firstDate,
+              lastDate: widget.lastDate,
+              headerBuilder: widget.headerBuilder,
+              dayBuilder: widget.dayBuilder,
+              onDateSelected: (d) => setState(() => _selected = d),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -36,6 +36,12 @@ dependencies:
   cupertino_icons: ^1.0.8
   thai_buddhist_date:
     path: packages/thai_buddhist_date
+  thai_buddhist_date_pickers:
+    path: packages/thai_buddhist_date_pickers
+
+dependency_overrides:
+  thai_buddhist_date:
+    path: packages/thai_buddhist_date
 
 dev_dependencies:
   flutter_test:

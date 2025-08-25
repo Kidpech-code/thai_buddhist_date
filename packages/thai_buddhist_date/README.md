@@ -65,17 +65,58 @@ Convenience APIs for common tasks:
 
 - `ThaiCalendar.ensureInitialized()` — loads `th_TH` locale data for `intl`.
 - `ThaiCalendar.format(date, pattern: 'fullText', era: Era.be)` — localized formatting using pre‑defined patterns.
+- `ThaiCalendar.formatNow(pattern: 'fullText', era: Era.be)` — like above, but uses `DateTime.now()` for you.
 - `ThaiCalendar.formatWith(DateFormat df, date, {era})` — use your own `DateFormat` and still get BE output safely.
 - `ThaiCalendar.formatInitialized(...)` — await locale init and then format.
 - `ThaiCalendar.formatSync(...)` — fast numeric‑only formatting without locale cost.
 
-Example:
+Examples:
 
 ```dart
 await ThaiCalendar.ensureInitialized();
 final d = DateTime(2025, 8, 22);
 print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.be)); // วันศุกร์ที่ 22 สิงหาคม 2568
 print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.ce)); // Friday, 22 สิงหาคม 2025 (localized)
+
+// No need to create `now` yourself
+final label = ThaiCalendar.formatNow(pattern: 'fullText');
+final labelCE = ThaiCalendar.formatNow(pattern: 'fullText', era: Era.ce);
+
+// Async version that ensures locale data first
+final asyncLabel = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
+```
+
+## Ergonomic API (pro)
+
+- Global settings:
+
+```dart
+// Choose defaults across your app
+ThaiDateSettings.set(era: Era.be, language: ThaiLanguage.thai); // or locale: 'en_US'
+```
+
+- Quick language switch:
+
+```dart
+ThaiDateSettings.useThai();      // 'th_TH'
+ThaiDateSettings.useEnglishUS(); // 'en_US'
+```
+
+- Reusable formatter:
+
+```dart
+final f = ThaiFormatter(pattern: 'dd MMM yyyy', era: Era.be, language: ThaiLanguage.thai);
+print(f.format(DateTime(2025, 8, 22))); // 22 ส.ค. 2568
+```
+
+- Extensions:
+
+```dart
+// DateTime -> String
+final s = DateTime(2025, 8, 22).toThaiString(pattern: 'yyyy-MM-dd', era: Era.ce, language: ThaiLanguage.english);
+
+// String -> DateTime?
+final dt = '22/08/2568'.toThaiDate(pattern: 'dd/MM/yyyy');
 ```
 
 ## Flutter widgets (optional)

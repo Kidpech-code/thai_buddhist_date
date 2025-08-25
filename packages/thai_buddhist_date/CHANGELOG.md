@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 - API polish and ergonomics
+
+- Clear separation between core date utilities and UI pickers (moved to thai_buddhist_date_pickers).
+- Added ThaiLanguage (thai/english) convenience and locale-aware ensureInitialized.
+- Introduced ThaiDateSettings for global defaults (default era/locale) and helpers to switch Thai/English.
+- Added ThaiFormatter reusable formatter class.
+- Added DateTime.toThaiString() and String.toThaiDate() extensions.
+- Kept all existing APIs for backward compatibility.
+
 ## 0.1.4 - Docs cleanup and examples update
 
 - Remove Bottom Sheet pickers from package features and examples to align with current scope.

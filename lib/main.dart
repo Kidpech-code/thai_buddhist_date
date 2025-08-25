@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'widgets/buddhist_gregorian_calendar.dart';
 import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
-import 'widgets/pickers.dart'
+import 'package:thai_buddhist_date_pickers/thai_buddhist_date_pickers.dart'
     show
         showThaiDatePicker,
         showThaiDateTimePicker,
