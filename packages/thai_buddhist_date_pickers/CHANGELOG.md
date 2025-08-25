@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Fix issue tracker URL to be HEAD-reachable; add homepage pointing to package folder.
+- Bump dependency: thai_buddhist_date ^0.2.2.
+- No code changes.
+
 ## 0.1.1
 
 - Add dartdoc comments to all public APIs for better pub.dev documentation score.
