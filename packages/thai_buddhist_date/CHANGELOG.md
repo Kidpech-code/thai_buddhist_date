@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 - Thai full date preset, custom parts, explicit-era parsing, docs
+
+- Add preset pattern 'dmy' for Thai full date output (e.g., 25 สิงหาคม 2568) with BE/CE.
+- Add ThaiCalendar.formatThaiDateParts(...) to build custom strings by reordering/omitting day/month/year; supports short month names and custom separators.
+- Add ThaiCalendar.parseWithEra(...) to parse inputs with an explicit era hint (treat input as BE or CE explicitly).
+- Expand README with detailed Thai usage guide, multi-language examples, and recipes.
+- General docs polish and Markdown fence fixes.
+
 ## 0.2.1 - Multi-language API and docs
 
 - Add ThaiDateSettings.useLocale(String) for setting any locale code globally.

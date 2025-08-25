@@ -51,6 +51,9 @@ String _languageToLocale(ThaiLanguage lang) {
   }
 }
 
+/// Parts for building custom Thai date strings.
+enum ThaiDatePart { day, month, year }
+
 /// Global settings for defaults to make usage ergonomic.
 class ThaiDateSettings {
   static Era defaultEra = Era.be;
@@ -166,6 +169,12 @@ class ThaiCalendar {
   }
 
   static final Map<String, String Function(DateTime)> _formats = {
+    // Explicit D MY (e.g., 25 สิงหาคม 2568) using current default locale
+    'dmy': (d) {
+      final loc = ThaiDateSettings.defaultLocale;
+      final s = DateFormat('d MMMM yyyy', loc).format(d);
+      return _replaceYearWithBE(s, d.year);
+    },
     'fullText': (d) {
       final s = DateFormat.yMMMMEEEEd(ThaiDateSettings.defaultLocale).format(d);
       return _replaceYearWithBE(s, d.year);
@@ -225,6 +234,8 @@ class ThaiCalendar {
           return DateFormat.yMMMMEEEEd(loc).format(date);
         } else if (pattern == 'long') {
           return DateFormat.yMMMMd(loc).format(date);
+        } else if (pattern == 'dmy') {
+          return DateFormat('d MMMM yyyy', loc).format(date);
         } else if (pattern == 'slash') {
           return '${_pad2(date.day)}/${_pad2(date.month)}/${date.year}';
         } else if (pattern == 'dash') {
@@ -245,6 +256,44 @@ class ThaiCalendar {
     }
     final s = DateFormat(pattern, loc).format(date);
     return era == Era.be ? _replaceYearWithBE(s, date.year) : s;
+  }
+
+  /// Build a custom Thai date string from parts, with reordering or omission.
+  ///
+  /// Example:
+  /// - Default (day, month, year): 25 สิงหาคม 2568
+  /// - Swap to month, day: สิงหาคม 25
+  /// - Omit year: 25 สิงหาคม
+  static String formatThaiDateParts(
+    DateTime date, {
+    List<ThaiDatePart>? order,
+    Era era = Era.be,
+    String? locale,
+    String separator = ' ',
+    bool monthShort = false,
+  }) {
+    final loc =
+        (locale?.isNotEmpty == true) ? locale! : ThaiDateSettings.defaultLocale;
+    final effectiveOrder = order ??
+        const [ThaiDatePart.day, ThaiDatePart.month, ThaiDatePart.year];
+    final parts = <String>[];
+    String day() => date.day.toString();
+    String month() => DateFormat(monthShort ? 'MMM' : 'MMMM', loc).format(date);
+    String year() => (era == Era.be ? date.year + 543 : date.year).toString();
+    for (final p in effectiveOrder) {
+      switch (p) {
+        case ThaiDatePart.day:
+          parts.add(day());
+          break;
+        case ThaiDatePart.month:
+          parts.add(month());
+          break;
+        case ThaiDatePart.year:
+          parts.add(year());
+          break;
+      }
+    }
+    return parts.join(separator).trim();
   }
 
   /// Convenience: format the current time (DateTime.now()) with the same options.
@@ -423,6 +472,36 @@ class ThaiCalendar {
       } catch (_) {}
     }
     return null;
+  }
+
+  /// Parse using an explicit era hint.
+  ///
+  /// If [era] is [Era.be], the parsed year is treated as Buddhist Era and
+  /// converted to CE by subtracting 543 (regardless of its numeric value).
+  /// Provide [pattern] for the input format (e.g., 'd MMMM yyyy').
+  static DateTime? parseWithEra(
+    String input, {
+    required String pattern,
+    Era era = Era.be,
+    String? locale,
+    ThaiLanguage? language,
+  }) {
+    input = input.trim();
+    final loc = language != null
+        ? _languageToLocale(language)
+        : (locale?.isNotEmpty == true
+            ? locale!
+            : ThaiDateSettings.defaultLocale);
+    try {
+      final dt = DateFormat(pattern, loc).parseStrict(input);
+      if (era == Era.be) {
+        return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute,
+            dt.second, dt.millisecond, dt.microsecond);
+      }
+      return dt;
+    } catch (_) {
+      return null;
+    }
   }
 
   static String? convert(
