@@ -1,0 +1,49 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "format-pickers",
+			"type": "shell",
+			"command": "dart format packages/thai_buddhist_date_pickers",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze-pickers",
+			"type": "shell",
+			"command": "dart analyze packages/thai_buddhist_date_pickers",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
+		},
+		{
+			"label": "re-analyze-pickers",
+			"type": "shell",
+			"command": "dart analyze packages/thai_buddhist_date_pickers",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
+		},
+		{
+			"label": "pub-dry-run-pickers",
+			"type": "shell",
+			"command": "dart pub publish --dry-run",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
+		}
+	]
+}

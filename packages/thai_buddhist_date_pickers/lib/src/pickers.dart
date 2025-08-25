@@ -7,7 +7,11 @@ import 'buddhist_gregorian_calendar.dart';
 // Exported API: showThaiDatePicker, showThaiDateTimePicker, showThaiMultiDatePicker, showThaiDatePickerFullscreen,
 // showThaiDatePickerFormatted, showThaiDateTimePickerFormatted
 
-// Single date dialog
+/// A dialog that lets the user pick a single calendar date.
+///
+/// The header/month/weekday strings are formatted using the
+/// thai_buddhist_date package with the provided [era] and [locale].
+/// Use [firstDate]/[lastDate] to restrict the selectable range.
 class ThaiDatePickerDialog extends StatefulWidget {
   const ThaiDatePickerDialog({
     super.key,
@@ -30,19 +34,46 @@ class ThaiDatePickerDialog extends StatefulWidget {
     this.insetPadding,
   });
 
+  /// The initially selected date.
   final DateTime? initialDate;
+
+  /// First selectable date (inclusive).
   final DateTime? firstDate;
+
+  /// Last selectable date (inclusive).
   final DateTime? lastDate;
+
+  /// Era used for formatting (BE/CE).
   final tbd.Era era;
+
+  /// Locale used for month/weekday names (e.g. `th_TH`).
   final String? locale;
+
+  /// Optional dialog title.
   final String? title;
+
+  /// Confirm button label.
   final String? confirmText;
+
+  /// Cancel button label.
   final String? cancelText;
+
+  /// Dialog width override.
   final double? width;
+
+  /// Calendar area height.
   final double? height;
+
+  /// Custom header builder (receives prev/next callbacks).
   final Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder;
+
+  /// Custom day cell builder.
   final Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder;
+
+  /// Dialog shape.
   final ShapeBorder? shape;
+
+  /// Padding around title/content/actions/insets.
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? contentPadding;
   final EdgeInsetsGeometry? actionsPadding;
@@ -102,7 +133,10 @@ class _ThaiDatePickerDialogState extends State<ThaiDatePickerDialog> {
   }
 }
 
-// DateTime dialog
+/// A dialog that lets the user pick a calendar date and a time of day.
+///
+/// The date portion is rendered with [ThaiDatePickerDialog]-like calendar and
+/// preview is formatted using the provided [formatString].
 class ThaiDateTimePickerDialog extends StatefulWidget {
   const ThaiDateTimePickerDialog({
     super.key,
@@ -149,7 +183,7 @@ class ThaiDateTimePickerDialog extends StatefulWidget {
   State<ThaiDateTimePickerDialog> createState() => _ThaiDateTimePickerDialogState();
 }
 
-// Range dialog
+/// A dialog that lets the user pick a start and end date (a range).
 class ThaiDateRangePickerDialog extends StatefulWidget {
   const ThaiDateRangePickerDialog({
     super.key,
@@ -379,6 +413,10 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
   }
 }
 
+/// Shows a single-date picker dialog and returns a formatted string.
+///
+/// Convenience wrapper over [showThaiDatePicker] that applies
+/// thai_buddhist_date formatting with [formatString].
 Future<String?> showThaiDatePickerFormatted(
   BuildContext context, {
   DateTime? initialDate,
@@ -424,6 +462,10 @@ Future<String?> showThaiDatePickerFormatted(
   return tbd.format(dt, format: formatString, era: era, locale: locale);
 }
 
+/// Shows a date-time picker dialog and returns a formatted string.
+///
+/// Convenience wrapper over [showThaiDateTimePicker] that applies
+/// thai_buddhist_date formatting with [formatString].
 Future<String?> showThaiDateTimePickerFormatted(
   BuildContext context, {
   DateTime? initialDateTime,
@@ -459,6 +501,7 @@ Future<String?> showThaiDateTimePickerFormatted(
   return tbd.format(dt, format: formatString, era: era, locale: locale);
 }
 
+/// Shows a dialog to pick a single date. Returns the picked [DateTime] or null.
 Future<DateTime?> showThaiDatePicker(
   BuildContext context, {
   DateTime? initialDate,
@@ -503,6 +546,7 @@ Future<DateTime?> showThaiDatePicker(
   );
 }
 
+/// Shows a dialog to pick a date and time. Returns the picked [DateTime] or null.
 Future<DateTime?> showThaiDateTimePicker(
   BuildContext context, {
   DateTime? initialDateTime,
@@ -549,6 +593,7 @@ Future<DateTime?> showThaiDateTimePicker(
   );
 }
 
+/// Shows a dialog to pick a date range. Returns the picked [DateTimeRange] or null.
 Future<DateTimeRange?> showThaiDateRangePicker(
   BuildContext context, {
   DateTime? initialStart,
@@ -596,6 +641,7 @@ Future<DateTimeRange?> showThaiDateRangePicker(
 }
 
 // Multi-date dialog
+/// A dialog that lets the user pick multiple dates.
 class ThaiMultiDatePickerDialog extends StatefulWidget {
   const ThaiMultiDatePickerDialog({
     super.key,
@@ -723,6 +769,7 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
   }
 }
 
+/// Shows a dialog to pick multiple dates. Returns the picked set or null.
 Future<Set<DateTime>?> showThaiMultiDatePicker(
   BuildContext context, {
   Set<DateTime>? initialDates,

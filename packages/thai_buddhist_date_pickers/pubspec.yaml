@@ -1,6 +1,6 @@
 name: thai_buddhist_date_pickers
 description: Flutter calendar and pickers (dialog/fullscreen, range, multi) for Thai Buddhist (พ.ศ.) and Gregorian (ค.ศ.), built on thai_buddhist_date.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/Kidpech-code/thai_buddhist_date
 issue_tracker: https://github.com/Kidpech-code/thai_buddhist_date/issues
 environment:
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  thai_buddhist_date: ^0.1.4
+  thai_buddhist_date: ^0.2.1
 
 dev_dependencies:
   flutter_lints: ^5.0.0
