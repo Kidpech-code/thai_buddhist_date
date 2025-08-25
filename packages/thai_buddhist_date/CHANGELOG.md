@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 - Multi-language API and docs
+
+- Add ThaiDateSettings.useLocale(String) for setting any locale code globally.
+- Add TbdLocales class with constants for common language/region codes (e.g., 'fr', 'ar', 'ja', 'zh', etc.).
+- Update documentation: professional multi-language date/time/date&time usage, clear examples for all major languages.
+
 ## 0.2.0 - API polish and ergonomics
 
 - Clear separation between core date utilities and UI pickers (moved to thai_buddhist_date_pickers).
