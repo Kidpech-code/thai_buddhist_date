@@ -24,7 +24,7 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.2.1
+  thai_buddhist_date: ^0.2.2
 ```
 
 Then run `dart pub get` or `flutter pub get`.
@@ -72,7 +72,7 @@ Convenience APIs for common tasks:
 
 Examples:
 
-````dart
+```dart
 await ThaiCalendar.ensureInitialized();
 final d = DateTime(2025, 8, 22);
 print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.be)); // วันศุกร์ที่ 22 สิงหาคม 2568
@@ -84,6 +84,7 @@ final labelCE = ThaiCalendar.formatNow(pattern: 'fullText', era: Era.ce);
 
 // Async version that ensures locale data first
 final asyncLabel = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
+```
 
 ### Multi-language date/time/date&time
 
@@ -108,6 +109,73 @@ final deShort = ThaiCalendar.formatNow(pattern: 'dd.MM.yyyy', locale: 'de');
 // Ensure localized month/day names when needed
 await ThaiCalendar.ensureInitialized('ja');
 final jaFull = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'ja');
+```
+
+### Thai full date format (วัน เดือน ปี)
+
+Output like 25 สิงหาคม 2568 using a preset pattern, with BE or CE:
+
+```dart
+final d = DateTime(2025, 8, 25);
+// BE (default): 25 สิงหาคม 2568
+final thBE = ThaiCalendar.format(d, pattern: 'dmy', era: Era.be);
+// CE: 25 สิงหาคม 2025
+final thCE = ThaiCalendar.format(d, pattern: 'dmy', era: Era.ce);
+```
+
+### Custom ordering or omitting parts
+
+Build your own strings by reordering or omitting components (day, month, year).
+
+```dart
+import 'package:thai_buddhist_date/thai_buddhist_date.dart';
+
+final d = DateTime(2025, 8, 25);
+
+// Default order: day month year → "25 สิงหาคม 2568"
+final def = ThaiCalendar.formatThaiDateParts(d, era: Era.be);
+
+// Swap to month day: "สิงหาคม 25"
+final monthDay = ThaiCalendar.formatThaiDateParts(
+  d,
+  order: const [ThaiDatePart.month, ThaiDatePart.day],
+  era: Era.be,
+);
+
+// Omit year: "25 สิงหาคม"
+final dayMonth = ThaiCalendar.formatThaiDateParts(
+  d,
+  order: const [ThaiDatePart.day, ThaiDatePart.month],
+  era: Era.be,
+);
+
+// Short month name: "25 ส.ค. 2568"
+final shortMonth = ThaiCalendar.formatThaiDateParts(
+  d,
+  era: Era.be,
+  monthShort: true,
+);
+```
+
+### Explicit-era parsing for BE inputs
+
+When your input string is known to be พ.ศ. (Buddhist Era), parse with an explicit era hint:
+
+```dart
+// Input is in BE: "25 สิงหาคม 2568"
+final parsed = ThaiCalendar.parseWithEra(
+  '25 สิงหาคม 2568',
+  pattern: 'd MMMM yyyy',
+  era: Era.be,   // treat input year as BE and convert to CE internally
+);
+
+// If input is CE, specify Era.ce (or use ThaiCalendar.parse with heuristics)
+final parsedCE = ThaiCalendar.parseWithEra(
+  '25 August 2025',
+  pattern: 'd MMMM yyyy',
+  era: Era.ce,
+  locale: 'en_US',
+);
 ```
 
 ### Common recipes
@@ -137,9 +205,7 @@ final d2 = ThaiCalendar.parse('2025-08-22', customPattern: 'yyyy-MM-dd'); // -> 
 
 // 6) Convert patterns and eras
 final out = ThaiCalendar.convert('22/08/2568', fromPattern: 'dd/MM/yyyy', toPattern: 'yyyy-MM-dd', toEra: Era.ce); // 2025-08-22
-````
-
-````
+```
 
 ## Ergonomic API (pro)
 
@@ -148,7 +214,7 @@ final out = ThaiCalendar.convert('22/08/2568', fromPattern: 'dd/MM/yyyy', toPatt
 ```dart
 // Choose defaults across your app
 ThaiDateSettings.set(era: Era.be, language: ThaiLanguage.thai); // or locale: 'en_US'
-````
+```
 
 - Quick language switch:
 
@@ -278,3 +344,177 @@ The date‑time dialog also exposes `formatString` to control the live preview t
 ## License
 
 MIT
+
+## วิธีใช้งาน (ภาษาไทย)
+
+ด้านล่างนี้คือคู่มือการใช้งานแบบละเอียด แบ่งหัวข้อชัดเจน พร้อมตัวอย่างโค้ดใช้งานจริง ครอบคลุมรูปแบบทั่วไป, การใช้งานแบบง่าย, การปรับแต่ง (custom), การใช้งานกับพ.ศ./ค.ศ., การแปลงรูปแบบ และฟังก์ชันช่วยอื่นๆ ที่ควรรู้
+
+### 1) การเรียกใช้งานปกติ (Standard)
+
+ใช้ `parse` อ่านสตริงวันที่เป็น BE/CE ได้อัตโนมัติ และ `format` เพื่อพิมพ์ผล โดยเลือกยุคปีด้วย `era: Era.be|Era.ce`
+
+```dart
+import 'package:thai_buddhist_date/thai_buddhist_date.dart';
+
+final dt1 = parse('2568-08-25');             // อินพุต พ.ศ. -> ภายในเป็น ค.ศ. (2025-08-25)
+final dt2 = parse('2025-08-25');             // อินพุต ค.ศ.
+
+final sBE = format(dt1);                      // ค่าเริ่มต้น Era.be -> 2568-08-25
+final sCE = format(dt1, era: Era.ce);         // 2025-08-25
+```
+
+ใช้แพตเทิร์นเองได้ เช่น `MMMM yyyy`, `dd/MM/yyyy`, `HH:mm` เป็นต้น
+
+```dart
+final d = DateTime(2025, 8, 25);
+print(format(d, format: 'dd/MM/yyyy'));       // 25/08/2568 (BE)
+print(format(d, format: 'MMMM yyyy'));        // สิงหาคม 2568 (BE)
+print(format(d, format: 'MMMM yyyy', era: Era.ce)); // สิงหาคม 2025 (CE)
+```
+
+### 2) การเรียกใช้งานอย่างง่าย (Quick)
+
+- ไม่อยากสร้าง `DateTime.now()` เอง ใช้ `ThaiCalendar.formatNow(...)`
+- แบบ async ที่แน่ใจว่ามี locale พร้อม ใช้ `ThaiCalendar.formatInitializedNow(...)`
+- ใช้ extension สำหรับ `DateTime`
+
+```dart
+// ป้ายข้อความตอนนี้
+final label = ThaiCalendar.formatNow(pattern: 'fullText');
+
+// แบบ async พร้อม ensure locale
+final labelAsync = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
+
+// Extension บน DateTime
+final pretty = DateTime(2025, 8, 25).toThaiString(pattern: 'yyyy-MM-dd');
+```
+
+### 3) การเรียกใช้งานแบบ Custom (สลับ/ตัดส่วน, เดือนย่อ, ตัวคั่น)
+
+ต้องการรูปแบบ “วัน เดือน ปี” เช่น `25 สิงหาคม 2568` ใช้พรีเซ็ต `pattern: 'dmy'`
+
+```dart
+final d = DateTime(2025, 8, 25);
+print(ThaiCalendar.format(d, pattern: 'dmy'));           // 25 สิงหาคม 2568
+print(ThaiCalendar.format(d, pattern: 'dmy', era: Era.ce)); // 25 สิงหาคม 2025
+```
+
+และถ้าต้องการสลับตำแหน่ง/ตัดบางส่วนออก หรือใช้เดือนแบบย่อ ให้ใช้ `ThaiCalendar.formatThaiDateParts(...)`
+
+```dart
+// เรียง วัน เดือน ปี (ดีฟอลต์)
+final def = ThaiCalendar.formatThaiDateParts(d, era: Era.be); // 25 สิงหาคม 2568
+
+// สลับเป็น เดือน วัน
+final monthDay = ThaiCalendar.formatThaiDateParts(
+  d,
+  order: const [ThaiDatePart.month, ThaiDatePart.day],
+  era: Era.be,
+); // สิงหาคม 25
+
+// ตัดปีออก (วัน เดือน)
+final dayMonth = ThaiCalendar.formatThaiDateParts(
+  d,
+  order: const [ThaiDatePart.day, ThaiDatePart.month],
+  era: Era.be,
+); // 25 สิงหาคม
+
+// ใช้เดือนย่อ และปรับคั่นด้วย "-"
+final shortDash = ThaiCalendar.formatThaiDateParts(
+  d,
+  era: Era.be,
+  monthShort: true,
+  separator: '-',
+); // 25-ส.ค.-2568
+```
+
+### 4) การเรียกใช้งานด้วย พ.ศ. หรือ ค.ศ. (Formatting & Parsing with Era)
+
+- Formatting: กำหนดยุคปีที่ต้องการด้วย `era: Era.be|Era.ce` ใน `format(...)`, `ThaiCalendar.format(...)`, หรือ extension `toThaiString(...)`
+- Parsing (อินพุตแน่ชัดว่าเป็น พ.ศ.): ใช้ `ThaiCalendar.parseWithEra(..., era: Era.be)` เพื่อบังคับแปลงปี พ.ศ. -> ค.ศ.
+
+```dart
+// Formatting เป็น พ.ศ. หรือ ค.ศ.
+final d = DateTime(2025, 8, 25);
+final be = format(d);                    // 2568-08-25
+final ce = format(d, era: Era.ce);       // 2025-08-25
+
+// Parsing เมื่ออินพุตเป็น พ.ศ. แน่นอน
+final parsedBE = ThaiCalendar.parseWithEra(
+  '25 สิงหาคม 2568',
+  pattern: 'd MMMM yyyy',
+  era: Era.be,
+); // -> DateTime(2025, 8, 25)
+
+// Parsing อินพุต ค.ศ.
+final parsedCE = ThaiCalendar.parseWithEra(
+  '25 August 2025',
+  pattern: 'd MMMM yyyy',
+  era: Era.ce,
+  locale: 'en_US',
+);
+```
+
+หมายเหตุ: หากอินพุตไม่แน่ใจว่าเป็น BE/CE ใช้ `ThaiCalendar.parse(input, customPattern: ...)` หรือ `parse(...)` ที่มี heuristic ตรวจปี >= 2400 เป็น พ.ศ.
+
+### 5) การเรียกใช้งานแปลงรูปแบบ (Convert)
+
+เปลี่ยนรูปแบบ/ยุคปีด้วย `ThaiCalendar.convert(...)`
+
+```dart
+final out1 = ThaiCalendar.convert(
+  '22/08/2568',
+  fromPattern: 'dd/MM/yyyy',
+  toPattern: 'yyyy-MM-dd',
+  toEra: Era.ce,
+); // 2025-08-22
+
+final out2 = ThaiCalendar.convert(
+  '2025-08-22',
+  fromPattern: 'yyyy-MM-dd',
+  toPattern: 'd MMMM yyyy',
+  toEra: Era.be,
+); // 22 สิงหาคม 2568
+```
+
+### 6) การใช้งานหลายภาษา (Multi‑language)
+
+- กำหนด locale เป็นรายครั้งผ่าน `locale: 'th_TH' | 'en_US' | 'ja' | ...`
+- ตั้งค่าดีฟอลต์ทั้งระบบด้วย `ThaiDateSettings.useLocale('fr')`, `useThai()`, หรือ `useEnglishUS()`
+- ชุดค่าคงที่ `TbdLocales` มีโค้ดภาษาที่พบบ่อย เช่น `TbdLocales.th`, `TbdLocales.en`, `TbdLocales.ja`
+- สำหรับชื่อเดือน/วันแบบ localized อย่าลืม `await ThaiCalendar.ensureInitialized(locale)` ในแอป Flutter
+
+```dart
+ThaiDateSettings.useLocale('fr'); // ตั้งดีฟอลต์ภาษาฝรั่งเศส
+final fr = ThaiCalendar.formatNow(pattern: 'fullText');
+
+final ja = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'ja');
+await ThaiCalendar.ensureInitialized('ja');
+final jaFull = ThaiCalendar.format(DateTime(2025,8,25), pattern: 'dmy', era: Era.ce, locale: 'ja');
+```
+
+### 7) ฟังก์ชันช่วยและทิปส์ (Helpers)
+
+- `ThaiCalendar.formatWith(DateFormat df, date, {era})` ใช้คู่กับ `intl.DateFormat` ที่คุณสร้างเอง
+- `ThaiCalendar.formatInitialized(...)` และ `formatInitializedNow(...)` ช่วย ensure locale อัตโนมัติ (Flutter)
+- `ThaiCalendar.formatSync(...)` เร็วสำหรับแพตเทิร์นเชิงตัวเลขล้วน (ไม่มีชื่อเดือน)
+- Extension: `DateTime.toThaiString(...)` และ `String.toThaiDate(...)`
+
+```dart
+// ใช้ DateFormat ของ intl โดยยังคง year เป็น พ.ศ.
+final df = DateFormat.yMMMMd('th');
+final s = ThaiCalendar.formatWith(df, DateTime(2025,8,25), era: Era.be);
+
+// Sync formatting (ตัวเลขล้วน)
+final fast = ThaiCalendar.formatSync(DateTime(2025,8,25), pattern: 'yyyy-MM-dd'); // 2568-08-25
+
+// Extensions
+final s1 = DateTime(2025,8,25).toThaiString(pattern: 'dd/MM/yyyy');
+final dt = '22/08/2568'.toThaiDate(pattern: 'dd/MM/yyyy');
+```
+
+### 8) ข้อควรระวัง/กรณีขอบ (Edge cases)
+
+- ถ้าอินพุตคลุมเครือ (เช่น ปี 2420 อาจเป็นทั้ง BE/CE ได้) ให้ระบุแพตเทิร์นและ era ให้ชัดด้วย `parseWithEra` หรือ `parseWith(DateFormat)`
+- แพตเทิร์นที่มีชื่อเดือน/วัน ต้องเรียก `ensureInitialized(locale)` ใน Flutter ก่อนจึงจะแสดงชื่อที่ถูกต้อง
+- `formatSync` ใช้กับแพตเทิร์นเชิงตัวเลขล้วนเท่านั้น (เช่น yyyy-MM-dd)
