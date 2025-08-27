@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3 - README: add formatNow examples
+
+- Add ThaiCalendar.formatNow examples alongside all DateTime(2025, 8, 25) snippets for clarity.
+- Minor docs tidy for Thai/English sections and example outputs.
+
 ## 0.2.2 - Thai full date preset, custom parts, explicit-era parsing, docs
 
 - Add preset pattern 'dmy' for Thai full date output (e.g., 25 สิงหาคม 2568) with BE/CE.

@@ -24,7 +24,7 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.2.2
+  thai_buddhist_date: ^0.2.3
 ```
 
 Then run `dart pub get` or `flutter pub get`.
