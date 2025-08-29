@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+- Docs-only: README updated to use `ThaiDateService().initializeLocale('th_TH')`.
+- Bump dependency: thai_buddhist_date ^0.2.4.
+- Remove dependency_overrides for publish.
+
 ## 0.1.2
 
 - Fix issue tracker URL to be HEAD-reachable; add homepage pointing to package folder.

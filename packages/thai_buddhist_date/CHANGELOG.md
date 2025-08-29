@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4 - Docs-only polish for publication
+
+- README: clarify sync top-level helpers, locale initialization, and legacy shims.
+- No code changes.
+
 ## 0.2.3 - Docs: sync top-level helpers, locale init guidance, compatibility
 
 - README overhaul: top-level `format/formatNow` examples are synchronous; removed unnecessary `await`.
