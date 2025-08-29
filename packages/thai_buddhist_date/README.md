@@ -15,7 +15,7 @@ Looking for calendar and dialog pickers? See the companion UI package:
 - Format with BE or CE: `format(DateTime, era: ...)` outputs the year in พ.ศ. (BE) or ค.ศ. (CE).
 - Parse both BE and CE seamlessly: `parse(String)` detects BE years (>= 2400) and normalizes to a CE `DateTime` internally.
 - Token‑aware formatter: Only the year tokens are replaced when outputting BE, so patterns like `yyyy-MM-dd` or `MMMM yyyy` remain safe.
-- ThaiCalendar helpers: Locale‑aware utilities with `ensureInitialized()`, `format()`, `formatWith(DateFormat)`, `formatInitialized()`, and more.
+- Clean Architecture service: High‑level `ThaiDateService` with caching and sync formatting for numeric patterns.
 - Flutter extras (optional): A lightweight month calendar and a set of date pickers (single, date‑time with preview, range, multi‑date, and fullscreen) with theming hooks.
 
 ## Install
@@ -34,13 +34,16 @@ Then run `dart pub get` or `flutter pub get`.
 ```dart
 import 'package:thai_buddhist_date/thai_buddhist_date.dart';
 
-void main() {
+Future<void> main() async {
   // Parse either BE or CE and get a DateTime (internally CE).
   final dt = parse('2568-08-22');
 
-  // Format in BE (default) or CE.
-  print(format(dt));                 // 2568-08-22
-  print(format(dt, era: Era.ce));    // 2025-08-22
+void main() {
+  // Parse either BE or CE and get a DateTime (internally CE)
+  final dt = parse('2568-08-22'); // BE input -> CE internally (2025-08-22)
+
+  // Top-level format is synchronous
+  print(format(dt, pattern: 'yyyy-MM-dd', era: Era.ce)); // 2025-08-22
 }
 ```
 
@@ -51,163 +54,127 @@ If you need localized month/weekday names (e.g., `MMMM yyyy`), initialize the Th
 ```dart
 import 'package:flutter/material.dart';
 import 'package:thai_buddhist_date/thai_buddhist_date.dart';
+  // Load date symbols for Thai before using patterns like 'MMMM' or 'EEE'
+  await ThaiDateService().initializeLocale('th_TH');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await ThaiCalendar.ensureInitialized();
+  await ThaiDateService().initializeLocale('th_TH');
   runApp(const MyApp());
 }
 ```
 
-## ThaiCalendar helpers
-
-Convenience APIs for common tasks:
-
-- `ThaiCalendar.ensureInitialized()` — loads `th_TH` locale data for `intl`.
-- `ThaiCalendar.format(date, pattern: 'fullText', era: Era.be)` — localized formatting using pre‑defined patterns.
-- `ThaiCalendar.formatNow(pattern: 'fullText', era: Era.be)` — like above, but uses `DateTime.now()` for you.
-- `ThaiCalendar.formatWith(DateFormat df, date, {era})` — use your own `DateFormat` and still get BE output safely.
-- `ThaiCalendar.formatInitialized(...)` — await locale init and then format.
-- `ThaiCalendar.formatSync(...)` — fast numeric‑only formatting without locale cost.
-
-Examples:
+print(format(d, pattern: 'dmy', era: Era.be)); // 25 สิงหาคม 2568
+print(format(d, pattern: 'dmy', era: Era.ce)); // 25 สิงหาคม 2025
 
 ```dart
-await ThaiCalendar.ensureInitialized();
-final d = DateTime(2025, 8, 22);
-print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.be)); // วันศุกร์ที่ 22 สิงหาคม 2568
-print(ThaiCalendar.format(d, pattern: 'fullText', era: Era.ce)); // Friday, 22 สิงหาคม 2025 (localized)
+final service = ThaiDateService();
+print(format(d, pattern: 'dd/MM/yyyy'));       // 25/08/2568 (BE)
+print(format(d, pattern: 'MMMM yyyy'));        // สิงหาคม 2568 (BE)
+print(format(d, pattern: 'MMMM yyyy', era: Era.ce)); // สิงหาคม 2025 (CE)
+final iso = service.formatSync(ThaiDate.fromDateTime(DateTime(2025, 8, 22)), pattern: 'iso');
 
-// Format current date/time (BE and CE)
-print(ThaiCalendar.formatNow(pattern: 'fullText')); // วันจันทร์ที่ 27 สิงหาคม 2568
-print(ThaiCalendar.formatNow(pattern: 'fullText', era: Era.ce)); // Monday, 27 August 2025
+// Parse (accepts BE or CE) – returns ThaiDate (BE year)
+print(formatNow(pattern: 'dd/MM/yyyy', era: Era.be));
+print(formatNow(pattern: 'dd/MM/yyyy', era: Era.ce));
+// Now helper
+final label = await service.formatNow(pattern: 'fullText');
 
-// Async version that ensures locale data first
-final asyncLabel = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
-print(asyncLabel); // วันจันทร์ที่ 27 สิงหาคม 2568
+print(formatNow(pattern: 'fullText'));
+print(formatNow(pattern: 'fullText', locale: 'en_US'));
+service.setLanguage(ThaiLanguage.thai); // sets locale to 'th_TH'
+await service.initializeLocale('th_TH');
 ```
 
 ### Multi-language date/time/date&time
 
-- Pick any locale via the `locale:` parameter or set a default with `ThaiDateSettings.useLocale('fr')`.
+- Pick any locale via the `locale:` parameter or set language globally on the service.
 - Use the same API for date (yyyy-MM-dd), time (HH:mm), or combined (dd/MM/yyyy HH:mm).
 
-```dart
-// Set default locale globally (optional)
-ThaiDateSettings.useLocale('fr'); // French
-
-// Date only
-final frDate = ThaiCalendar.formatNow(pattern: 'yyyy-MM-dd');
-// Time only
-final frTime = ThaiCalendar.formatNow(pattern: 'HH:mm');
-// Date & Time
-final frDateTime = ThaiCalendar.formatNow(pattern: 'dd/MM/yyyy HH:mm');
+  final label = tbd.format(picked, pattern: 'dmy', era: tbd.Era.be);
+  final svc = ThaiDateService();
+  // Date only
+  final frDate = await svc.formatNow(pattern: 'yyyy-MM-dd', locale: 'fr');
+  // Time only
+  // Date & Time
+  final frDateTime = await svc.formatNow(pattern: 'dd/MM/yyyy HH:mm', locale: 'fr');
 
 // Override per call with another language
-final esFull = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'es');
-final deShort = ThaiCalendar.formatNow(pattern: 'dd.MM.yyyy', locale: 'de');
+final esFull = await svc.formatNow(pattern: 'fullText', locale: 'es');
 
-// Ensure localized month/day names when needed
-await ThaiCalendar.ensureInitialized('ja');
-final jaFull = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'ja');
-```
+````
 
 ### Thai full date format (วัน เดือน ปี)
 
-Output like 25 สิงหาคม 2568 using a preset pattern, with BE or CE:
+final sBE = format(dt1);                      // ค่าเริ่มต้น Era.be -> 2568-08-25
+final sCE = format(dt1, era: Era.ce);         // 2025-08-25
+```dart
+final d = DateTime(2025, 8, 25);
+print(await format(d, pattern: 'dmy', era: Era.be)); // 25 สิงหาคม 2568
+print(await format(d, pattern: 'dmy', era: Era.ce)); // 25 สิงหาคม 2025
+````
+
+### Custom patterns
+
+// ตัวอย่างวันนี้แบบ formatNow (ไม่ต้อง await)
+print(formatNow(pattern: 'MMMM yyyy'));
 
 ```dart
 final d = DateTime(2025, 8, 25);
-print(ThaiCalendar.format(d, pattern: 'dmy', era: Era.be)); // 25 สิงหาคม 2568
-print(ThaiCalendar.format(d, pattern: 'dmy', era: Era.ce)); // 25 สิงหาคม 2025
-// Today (preset 'dmy')
-print(ThaiCalendar.formatNow(pattern: 'dmy', era: Era.be)); // 27 สิงหาคม 2568
+print(await format(d, pattern: 'dd/MM/yyyy'));       // 25/08/2568 (BE)
+print(await format(d, pattern: 'MMMM yyyy'));        // สิงหาคม 2568 (BE)
+// ป้ายข้อความตอนนี้ (ไม่ต้อง await)
+final label = formatNow(pattern: 'fullText');
 ```
 
-### Custom ordering or omitting parts
-
-Build your own strings by reordering or omitting components (day, month, year).
-
-```dart
-import 'package:thai_buddhist_date/thai_buddhist_date.dart';
-
-final d = DateTime(2025, 8, 25);
-print(ThaiCalendar.formatThaiDateParts(d, era: Era.be)); // 25 สิงหาคม 2568
-print(ThaiCalendar.formatThaiDateParts(
-  d,
-  order: const [ThaiDatePart.month, ThaiDatePart.day],
-  era: Era.be,
-)); // สิงหาคม 25
-print(ThaiCalendar.formatThaiDateParts(
-  d,
-  order: const [ThaiDatePart.day, ThaiDatePart.month],
-  era: Era.be,
-)); // 25 สิงหาคม
-print(ThaiCalendar.formatThaiDateParts(
-  d,
-  era: Era.be,
-  monthShort: true,
-)); // 25 ส.ค. 2568
-// Today (preset 'dmy')
-print(ThaiCalendar.formatNow(pattern: 'dmy', era: Era.be)); // 27 สิงหาคม 2568
-```
+// โหลด locale ก่อนแล้วค่อยใช้งาน
 
 ### Explicit-era parsing for BE inputs
 
-When your input string is known to be พ.ศ. (Buddhist Era), parse with an explicit era hint:
+final labelAfterInit = formatNow(pattern: 'fullText');
+When your input is known to be พ.ศ., parse with an explicit era:
 
 ```dart
-// Input is in BE: "25 สิงหาคม 2568"
-final parsed = ThaiCalendar.parseWithEra(
-  '25 สิงหาคม 2568',
+final parsed = ThaiDateService().parseWithEra(
+final todayQuick = formatNow(pattern: 'yyyy-MM-dd');
   pattern: 'd MMMM yyyy',
-  era: Era.be,   // treat input year as BE and convert to CE internally
+  era: Era.be,
 );
-print(parsed); // 2025-08-25 00:00:00.000
-
-// If input is CE, specify Era.ce (or use ThaiCalendar.parse with heuristics)
-final parsedCE = ThaiCalendar.parseWithEra(
-  '25 August 2025',
-  pattern: 'd MMMM yyyy',
-  era: Era.ce,
-  locale: 'en_US',
-);
-print(parsedCE); // 2025-08-25 00:00:00.000
+print(parsed?.toDateTime()); // 2025-08-25 00:00:00.000
 ```
 
-### Common recipes
+print(format(d, pattern: 'dmy')); // 25 สิงหาคม 2568
+print(format(d, pattern: 'dmy', era: Era.ce)); // 25 สิงหาคม 2025
 
-```dart
-import 'package:thai_buddhist_date/thai_buddhist_date.dart';
-
-// 1) Today in BE and CE
-print(ThaiCalendar.formatNow(pattern: 'dd/MM/yyyy', era: Era.be)); // 27/08/2568
-print(ThaiCalendar.formatNow(pattern: 'dd/MM/yyyy', era: Era.ce)); // 27/08/2025
-
+print(formatNow(pattern: 'dmy'));
+// 1) Today in BE and CE (compat functions)
+print(await formatNow(pattern: 'dd/MM/yyyy', era: Era.be));
+print(await formatNow(pattern: 'dd/MM/yyyy', era: Era.ce));
+final def = format(d, pattern: 'd MMMM yyyy', era: Era.be); // 25 สิงหาคม 2568
 // 2) Localized full text (ensure locale first)
-await ThaiCalendar.ensureInitialized();
-print(ThaiCalendar.formatNow(pattern: 'fullText')); // วันจันทร์ที่ 27 สิงหาคม 2568
-print(ThaiCalendar.formatNow(pattern: 'fullText', locale: 'en_US')); // Monday, August 27, 2025
+await ThaiDateService().initializeLocale('th_TH');
+final monthDay = format(d, pattern: 'MMMM d', era: Era.be); // สิงหาคม 25
+print(await formatNow(pattern: 'fullText', locale: 'en_US'));
 
-// 3) Switch defaults globally
-ThaiDateSettings.set(era: Era.be, language: ThaiLanguage.thai);
-print(DateTime(2025, 8, 22).toThaiString(pattern: 'yyyy-MM-dd')); // 2568-08-22
+final dayMonth = format(d, pattern: 'd MMMM', era: Era.be); // 25 สิงหาคม
+print(DateTime(2025, 8, 22).toThaiStringSync(pattern: 'yyyy-MM-dd'));
 
-// 4) Numeric formatting (no locale cost)
-print(ThaiCalendar.formatSync(DateTime(2025, 8, 22), pattern: 'yyyy-MM-dd', era: Era.be)); // 2568-08-22
+final shortDash = format(d, pattern: 'd MMM yyyy', era: Era.be); // 25 ส.ค. 2568
+print(parse('22/08/2568', format: 'dd/MM/yyyy'));
+print(parse('2025-08-22', format: 'yyyy-MM-dd'));
 
-// 5) Parsing
-print(ThaiCalendar.parse('22/08/2568', customPattern: 'dd/MM/yyyy')); // 2025-08-22 00:00:00.000
-print(ThaiCalendar.parse('2025-08-22', customPattern: 'yyyy-MM-dd')); // 2025-08-22 00:00:00.000
+````
 
-// 6) Convert patterns and eras
-print(ThaiCalendar.convert('22/08/2568', fromPattern: 'dd/MM/yyyy', toPattern: 'yyyy-MM-dd', toEra: Era.ce)); // 2025-08-22
-```
-
-### Example: Thai date picker (output พ.ศ. ภาษาไทย)
-
+final be = format(d);                    // 2568-08-25
+final ce = format(d, era: Era.ce);       // 2025-08-25
 ```dart
 import 'package:flutter/material.dart';
+## Backward compatibility and sync vs async
+
+- Top-level helpers `format(...)` and `formatNow(...)` are synchronous (String). They’re drop-in replacements for legacy usage and safe to call without `await`.
+- The high-level `ThaiDateService` exposes both `format(...)` (async) and `formatSync(...)` (sync for numeric-only patterns). Use the service if you need explicit control, caching, and advanced parse/convert helpers.
+- Legacy shims like `ThaiCalendar`, `ThaiDateSettings`, `ThaiFormatter`, and `TbdLocales` remain available for existing code; they map to the new internals.
+- If you output localized month/weekday names (e.g., `MMMM`, `EEE`), call `await ThaiDateService().initializeLocale('th_TH')` once at startup.
 import 'package:thai_buddhist_date_pickers/thai_buddhist_date_pickers.dart';
 import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
 
@@ -219,42 +186,38 @@ final picked = await showThaiDatePicker(
   locale: 'th_TH',
 );
 if (picked != null) {
-  final label = tbd.ThaiCalendar.format(picked, pattern: 'dmy', era: tbd.Era.be);
+  final label = await tbd.format(picked, pattern: 'dmy', era: tbd.Era.be);
   print(label); // เช่น 27 สิงหาคม 2568
 }
-```
+````
 
-## Ergonomic API (pro)
+## Ergonomics
 
 - Global settings:
 
 ```dart
-// Choose defaults across your app
-ThaiDateSettings.set(era: Era.be, language: ThaiLanguage.thai); // or locale: 'en_US'
+final svc = ThaiDateService();
+svc.setEra(Era.be);
+svc.setLanguage(ThaiLanguage.thai);
 ```
 
 - Quick language switch:
 
 ```dart
-ThaiDateSettings.useThai();      // 'th_TH'
-ThaiDateSettings.useEnglishUS(); // 'en_US'
+// Use `setLanguage` or pass `locale:` per call
 ```
 
 - Reusable formatter:
 
 ```dart
-final f = ThaiFormatter(pattern: 'dd MMM yyyy', era: Era.be, language: ThaiLanguage.thai);
-print(f.format(DateTime(2025, 8, 22))); // 22 ส.ค. 2568
+// Reusable: hold a service instance and reuse it
 ```
 
 - Extensions:
 
 ```dart
 // DateTime -> String
-final s = DateTime(2025, 8, 22).toThaiString(pattern: 'yyyy-MM-dd', era: Era.ce, language: ThaiLanguage.english);
-
-// String -> DateTime?
-final dt = '22/08/2568'.toThaiDate(pattern: 'dd/MM/yyyy');
+final s = await DateTime(2025, 8, 22).toThaiString(pattern: 'yyyy-MM-dd', era: Era.ce);
 ```
 
 ## Flutter widgets (optional)
@@ -344,19 +307,19 @@ The date‑time dialog also exposes `formatString` to control the live preview t
 
 - All pickers support output in พ.ศ. or ค.ศ. via the `era` parameter.
 - The calendar respects `firstDate` and `lastDate` and disables days outside this window.
-- For localized month/weekday names, call `await ThaiCalendar.ensureInitialized()` before rendering UI.
+- For localized month/weekday names, initialize locale once on startup via `ThaiDateService().initializeLocale('th_TH')`.
 
 ### Error handling and edge cases
 
-- Parsing uses a simple heuristic for BE years (>= 2400). If your input is ambiguous or uses a custom pattern, prefer `ThaiCalendar.parseWith(DateFormat, input)` or specify an explicit format.
+- Parsing uses a simple heuristic for BE years (>= 2400). If your input is ambiguous or uses a custom pattern, prefer `ThaiDateService().parseWithEra(input, pattern: '...', era: Era.be|Era.ce)` or pass an explicit `format:` to `parse`.
 - All UI pickers are timezone-agnostic and operate on `DateTime` values you provide; be mindful of UTC vs local when storing or comparing.
 - The token‑aware formatter replaces only year tokens; other tokens are left to `intl` for correct localization.
 
 ## Notes
 
-- The formatter is token‑aware: it only replaces year tokens (e.g., `y`, `yy`, `yyyy`) to BE values. Other fields (month/day/weekday) are left to `intl` so localized output stays correct.
-- Parsing heuristics treat years `>= 2400` as BE. If your inputs are ambiguous or custom, prefer `ThaiCalendar.parseWith(DateFormat, input)` with an explicit pattern.
-- For best results with Thai month/day names in Flutter, call `await ThaiCalendar.ensureInitialized()` before rendering widgets.
+- Token‑aware: only year tokens (`y`, `yy`, `yyyy`) are swapped to BE; other tokens are left to `intl` for correct localization.
+- Parsing heuristics treat years `>= 2400` as BE. If inputs are ambiguous, use `ThaiDateService().parseWithEra(..., era: ...)` with an explicit pattern.
+- For Thai month/day names in Flutter, initialize locale via `ThaiDateService().initializeLocale('th_TH')` before rendering widgets.
 
 ## License
 
@@ -388,26 +351,27 @@ print(format(d, format: 'dd/MM/yyyy'));       // 25/08/2568 (BE)
 print(format(d, format: 'MMMM yyyy'));        // สิงหาคม 2568 (BE)
 print(format(d, format: 'MMMM yyyy', era: Era.ce)); // สิงหาคม 2025 (CE)
 // ตัวอย่างวันนี้แบบ formatNow
-print(ThaiCalendar.formatNow(pattern: 'MMMM yyyy'));        // สิงหาคม 2568
+print(await formatNow(pattern: 'MMMM yyyy'));
 ```
 
 ### 2) การเรียกใช้งานอย่างง่าย (Quick)
 
-- ไม่อยากสร้าง `DateTime.now()` เอง ใช้ `ThaiCalendar.formatNow(...)`
-- แบบ async ที่แน่ใจว่ามี locale พร้อม ใช้ `ThaiCalendar.formatInitializedNow(...)`
+- ไม่อยากสร้าง `DateTime.now()` เอง ใช้ `formatNow(...)`
+- ต้องการ localized ชื่อเดือน/วัน ให้ init locale หนึ่งครั้งด้วย `ThaiDateService().initializeLocale('th_TH')`
 - ใช้ extension สำหรับ `DateTime`
 
 ```dart
 // ป้ายข้อความตอนนี้
-final label = ThaiCalendar.formatNow(pattern: 'fullText');
+final label = await formatNow(pattern: 'fullText');
 
 // แบบ async พร้อม ensure locale
-final labelAsync = await ThaiCalendar.formatInitializedNow(pattern: 'fullText');
+await ThaiDateService().initializeLocale('th_TH');
+final labelAsync = await formatNow(pattern: 'fullText');
 
 // Extension บน DateTime
 final pretty = DateTime(2025, 8, 25).toThaiString(pattern: 'yyyy-MM-dd');
 // วันนี้แบบเร็ว
-final todayQuick = ThaiCalendar.formatNow(pattern: 'yyyy-MM-dd'); // 2568-08-27
+final todayQuick = await formatNow(pattern: 'yyyy-MM-dd');
 ```
 
 ### 3) การเรียกใช้งานแบบ Custom (สลับ/ตัดส่วน, เดือนย่อ, ตัวคั่น)
@@ -416,64 +380,51 @@ final todayQuick = ThaiCalendar.formatNow(pattern: 'yyyy-MM-dd'); // 2568-08-27
 
 ```dart
 final d = DateTime(2025, 8, 25);
-print(ThaiCalendar.format(d, pattern: 'dmy'));           // 25 สิงหาคม 2568
-print(ThaiCalendar.format(d, pattern: 'dmy', era: Era.ce)); // 25 สิงหาคม 2025
+print(await format(d, pattern: 'dmy'));           // 25 สิงหาคม 2568
+print(await format(d, pattern: 'dmy', era: Era.ce)); // 25 สิงหาคม 2025
 // วันนี้ด้วยพรีเซ็ตเดียวกัน
-print(ThaiCalendar.formatNow(pattern: 'dmy')); // 27 สิงหาคม 2568
+print(await formatNow(pattern: 'dmy'));
 ```
 
-และถ้าต้องการสลับตำแหน่ง/ตัดบางส่วนออก หรือใช้เดือนแบบย่อ ให้ใช้ `ThaiCalendar.formatThaiDateParts(...)`
+และถ้าต้องการสลับตำแหน่ง/ตัดบางส่วนออก ใช้แพตเทิร์นกำหนดเอง เช่น `MMMM d`, `d MMMM`, `d MMM yyyy`
 
 ```dart
 // เรียง วัน เดือน ปี (ดีฟอลต์)
-final def = ThaiCalendar.formatThaiDateParts(d, era: Era.be); // 25 สิงหาคม 2568
+final def = await format(d, pattern: 'd MMMM yyyy', era: Era.be); // 25 สิงหาคม 2568
 
 // สลับเป็น เดือน วัน
-final monthDay = ThaiCalendar.formatThaiDateParts(
-  d,
-  order: const [ThaiDatePart.month, ThaiDatePart.day],
-  era: Era.be,
-); // สิงหาคม 25
+final monthDay = await format(d, pattern: 'MMMM d', era: Era.be); // สิงหาคม 25
 
 // ตัดปีออก (วัน เดือน)
-final dayMonth = ThaiCalendar.formatThaiDateParts(
-  d,
-  order: const [ThaiDatePart.day, ThaiDatePart.month],
-  era: Era.be,
-); // 25 สิงหาคม
+final dayMonth = await format(d, pattern: 'd MMMM', era: Era.be); // 25 สิงหาคม
 
 // ใช้เดือนย่อ และปรับคั่นด้วย "-"
-final shortDash = ThaiCalendar.formatThaiDateParts(
-  d,
-  era: Era.be,
-  monthShort: true,
-  separator: '-',
-); // 25-ส.ค.-2568
+final shortDash = await format(d, pattern: 'd MMM yyyy', era: Era.be); // 25 ส.ค. 2568
 ```
 
 ### 4) การเรียกใช้งานด้วย พ.ศ. หรือ ค.ศ. (Formatting & Parsing with Era)
 
-- Formatting: กำหนดยุคปีที่ต้องการด้วย `era: Era.be|Era.ce` ใน `format(...)`, `ThaiCalendar.format(...)`, หรือ extension `toThaiString(...)`
-- Parsing (อินพุตแน่ชัดว่าเป็น พ.ศ.): ใช้ `ThaiCalendar.parseWithEra(..., era: Era.be)` เพื่อบังคับแปลงปี พ.ศ. -> ค.ศ.
+- Formatting: กำหนดยุคปีที่ต้องการด้วย `era: Era.be|Era.ce` ใน `format(...)` หรือ extension `toThaiString(...)`
+- Parsing (อินพุตแน่ชัดว่าเป็น พ.ศ.): ใช้ `ThaiDateService().parseWithEra(..., era: Era.be)` เพื่อบังคับแปลงปี พ.ศ. -> ค.ศ.
 
 ```dart
 // Formatting เป็น พ.ศ. หรือ ค.ศ.
 final d = DateTime(2025, 8, 25);
-final be = format(d);                    // 2568-08-25
-final ce = format(d, era: Era.ce);       // 2025-08-25
+final be = await format(d);                    // 2568-08-25
+final ce = await format(d, era: Era.ce);       // 2025-08-25
 // วันนี้ (BE/CE)
-print(ThaiCalendar.formatNow(pattern: 'yyyy-MM-dd', era: Era.be)); // 2568-08-27
-print(ThaiCalendar.formatNow(pattern: 'yyyy-MM-dd', era: Era.ce)); // 2025-08-27
+print(await formatNow(pattern: 'yyyy-MM-dd', era: Era.be));
+print(await formatNow(pattern: 'yyyy-MM-dd', era: Era.ce));
 
 // Parsing เมื่ออินพุตเป็น พ.ศ. แน่นอน
-final parsedBE = ThaiCalendar.parseWithEra(
+final parsedBE = ThaiDateService().parseWithEra(
   '25 สิงหาคม 2568',
   pattern: 'd MMMM yyyy',
   era: Era.be,
 ); // -> DateTime(2025, 8, 25)
 
 // Parsing อินพุต ค.ศ.
-final parsedCE = ThaiCalendar.parseWithEra(
+final parsedCE = ThaiDateService().parseWithEra(
   '25 August 2025',
   pattern: 'd MMMM yyyy',
   era: Era.ce,
@@ -481,69 +432,55 @@ final parsedCE = ThaiCalendar.parseWithEra(
 );
 ```
 
-หมายเหตุ: หากอินพุตไม่แน่ใจว่าเป็น BE/CE ใช้ `ThaiCalendar.parse(input, customPattern: ...)` หรือ `parse(...)` ที่มี heuristic ตรวจปี >= 2400 เป็น พ.ศ.
+หมายเหตุ: หากอินพุตไม่แน่ใจว่าเป็น BE/CE ใช้ `parse(input, format: ...)` ที่มี heuristic ตรวจปี >= 2400 เป็น พ.ศ. หรือ `ThaiDateService().parseWithEra(...)` ระบุ era ชัดเจน
 
 ### 5) การเรียกใช้งานแปลงรูปแบบ (Convert)
 
-เปลี่ยนรูปแบบ/ยุคปีด้วย `ThaiCalendar.convert(...)`
+แปลงรูปแบบ/ยุคปีด้วยการ parse แล้ว format ใหม่ (เช่น `parse(..., format: ...)` แล้ว `format(..., pattern: ..., era: ...)`)
 
 ```dart
-final out1 = ThaiCalendar.convert(
-  '22/08/2568',
-  fromPattern: 'dd/MM/yyyy',
-  toPattern: 'yyyy-MM-dd',
-  toEra: Era.ce,
-); // 2025-08-22
-
-final out2 = ThaiCalendar.convert(
-  '2025-08-22',
-  fromPattern: 'yyyy-MM-dd',
-  toPattern: 'd MMMM yyyy',
-  toEra: Era.be,
-); // 22 สิงหาคม 2568
+final dt = parse('22/08/2568', format: 'dd/MM/yyyy');
+final out1 = await format(dt, pattern: 'yyyy-MM-dd', era: Era.ce); // 2025-08-22
+final dt2 = parse('2025-08-22', format: 'yyyy-MM-dd');
+final out2 = await format(dt2, pattern: 'd MMMM yyyy', era: Era.be); // 22 สิงหาคม 2568
 ```
 
 ### 6) การใช้งานหลายภาษา (Multi‑language)
 
 - กำหนด locale เป็นรายครั้งผ่าน `locale: 'th_TH' | 'en_US' | 'ja' | ...`
-- ตั้งค่าดีฟอลต์ทั้งระบบด้วย `ThaiDateSettings.useLocale('fr')`, `useThai()`, หรือ `useEnglishUS()`
-- ชุดค่าคงที่ `TbdLocales` มีโค้ดภาษาที่พบบ่อย เช่น `TbdLocales.th`, `TbdLocales.en`, `TbdLocales.ja`
-- สำหรับชื่อเดือน/วันแบบ localized อย่าลืม `await ThaiCalendar.ensureInitialized(locale)` ในแอป Flutter
+- ตั้งค่าภาษา/locale ทั้งระบบด้วย `ThaiDateService().setLanguage(...)` หรือส่ง `locale:` รายครั้ง
+- สำหรับชื่อเดือน/วันแบบ localized อย่าลืม `await ThaiDateService().initializeLocale(locale)` ในแอป Flutter
 
 ```dart
-ThaiDateSettings.useLocale('fr'); // ตั้งดีฟอลต์ภาษาฝรั่งเศส
-final fr = ThaiCalendar.formatNow(pattern: 'fullText');
+await ThaiDateService().initializeLocale('fr');
+final fr = await formatNow(pattern: 'fullText', locale: 'fr');
 
-final ja = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'ja');
-await ThaiCalendar.ensureInitialized('ja');
-final jaFull = ThaiCalendar.format(DateTime(2025,8,25), pattern: 'dmy', era: Era.ce, locale: 'ja');
-final jaNowFull = ThaiCalendar.formatNow(pattern: 'fullText', locale: 'ja');
+await ThaiDateService().initializeLocale('ja');
+final jaFull = await format(DateTime(2025,8,25), pattern: 'dmy', era: Era.ce, locale: 'ja');
+final jaNowFull = await formatNow(pattern: 'fullText', locale: 'ja');
 ```
 
 ### 7) ฟังก์ชันช่วยและทิปส์ (Helpers)
 
-- `ThaiCalendar.formatWith(DateFormat df, date, {era})` ใช้คู่กับ `intl.DateFormat` ที่คุณสร้างเอง
-- `ThaiCalendar.formatInitialized(...)` และ `formatInitializedNow(...)` ช่วย ensure locale อัตโนมัติ (Flutter)
-- `ThaiCalendar.formatSync(...)` เร็วสำหรับแพตเทิร์นเชิงตัวเลขล้วน (ไม่มีชื่อเดือน)
+- `ThaiDateService().formatSync(...)` เร็วสำหรับแพตเทิร์นเชิงตัวเลขล้วน (ไม่มีชื่อเดือน)
 - Extension: `DateTime.toThaiString(...)` และ `String.toThaiDate(...)`
 
 ```dart
 // ใช้ DateFormat ของ intl โดยยังคง year เป็น พ.ศ.
 final df = DateFormat.yMMMMd('th');
-final s = ThaiCalendar.formatWith(df, DateTime(2025,8,25), era: Era.be);
 // วันนี้ด้วยแพตเทิร์นเดียวกัน
-final sNow = ThaiCalendar.formatNow(pattern: 'yMMMMd'); // 27 สิงหาคม 2568
+final sNow = await formatNow(pattern: 'yMMMMd');
 
 // Sync formatting (ตัวเลขล้วน)
-final fast = ThaiCalendar.formatSync(DateTime(2025,8,25), pattern: 'yyyy-MM-dd'); // 2568-08-25
-// วันนี้ (ผ่าน formatNow)
-final todayFast = ThaiCalendar.formatNow(pattern: 'yyyy-MM-dd'); // 2568-08-27
+final fast = ThaiDateService().formatSync(ThaiDate.fromDateTime(DateTime(2025,8,25)), pattern: 'yyyy-MM-dd'); // 2568-08-25
+// วันนี้ (ผ่าน compat formatNow)
+final todayFast = await formatNow(pattern: 'yyyy-MM-dd');
 
 // Extensions
 final s1 = DateTime(2025,8,25).toThaiString(pattern: 'dd/MM/yyyy');
 final dt = '22/08/2568'.toThaiDate(pattern: 'dd/MM/yyyy');
 // วันนี้เป็นสตริง
-final sNow = ThaiCalendar.formatNow(pattern: 'dd/MM/yyyy'); // 27/08/2568
+final sNow = await formatNow(pattern: 'dd/MM/yyyy');
 ```
 
 ### 8) ข้อควรระวัง/กรณีขอบ (Edge cases)

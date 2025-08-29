@@ -13,8 +13,8 @@ Flutter calendar and pickers for Thai Buddhist (พ.ศ.) and Gregorian (ค.ศ
 
 ```yaml
 dependencies:
-  thai_buddhist_date_pickers: ^0.1.1
-  thai_buddhist_date: ^0.2.2
+  thai_buddhist_date_pickers: ^0.1.2
+  thai_buddhist_date: ^0.2.3
 ```
 
 ## Usage
@@ -29,7 +29,7 @@ final picked = await showThaiDatePicker(context, era: tbd.Era.be, locale: 'th_TH
 Initialize Thai locale once if you want localized month/weekday names:
 
 ```dart
-await tbd.ThaiCalendar.ensureInitialized();
+await tbd.ThaiDateService().initializeLocale('th_TH');
 ```
 
 ## Example
@@ -44,7 +44,7 @@ import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await tbd.ThaiCalendar.ensureInitialized();
+  await tbd.ThaiDateService().initializeLocale('th_TH');
   runApp(const MyApp());
 }
 
