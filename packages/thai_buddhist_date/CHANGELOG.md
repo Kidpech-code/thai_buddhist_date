@@ -5,6 +5,10 @@
 - README: clarify sync top-level helpers, locale initialization, and legacy shims.
 - No code changes.
 
+## 0.2.5 - Formatting only
+
+- Run `dart format` across all Dart sources to satisfy pub score formatting checks.
+
 ## 0.2.3 - Docs: sync top-level helpers, locale init guidance, compatibility
 
 - README overhaul: top-level `format/formatNow` examples are synchronous; removed unnecessary `await`.
