@@ -9,8 +9,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  thai_buddhist_date_pickers: ^0.1.1
-  thai_buddhist_date: ^0.2.1
+  thai_buddhist_date_pickers: ^0.1.2
+  thai_buddhist_date: ^0.2.3
 
 flutter:
   uses-material-design: true
+
+dependency_overrides:
+  thai_buddhist_date:
+    path: ../../thai_buddhist_date
+  thai_buddhist_date_pickers:
+    path: ..

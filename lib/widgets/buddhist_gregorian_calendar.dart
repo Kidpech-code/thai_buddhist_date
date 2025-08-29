@@ -27,19 +27,35 @@ class BuddhistGregorianCalendar extends StatefulWidget {
   final DateTime? firstDate; // min selectable date
   final DateTime? lastDate; // max selectable date
   /// Optional custom header builder. If provided, overrides default month header and nav.
-  final Widget Function(BuildContext context, DateTime visibleMonth, tbd.Era era, String? locale, VoidCallback onPrev, VoidCallback onNext)?
+  final Widget Function(
+    BuildContext context,
+    DateTime visibleMonth,
+    tbd.Era era,
+    String? locale,
+    VoidCallback onPrev,
+    VoidCallback onNext,
+  )?
   headerBuilder;
 
   /// Optional custom day cell builder. Receives date, selected, disabled flags.
-  final Widget Function(BuildContext context, DateTime date, bool selected, bool disabled)? dayBuilder;
+  final Widget Function(
+    BuildContext context,
+    DateTime date,
+    bool selected,
+    bool disabled,
+  )?
+  dayBuilder;
 
   @override
-  State<BuddhistGregorianCalendar> createState() => _BuddhistGregorianCalendarState();
+  State<BuddhistGregorianCalendar> createState() =>
+      _BuddhistGregorianCalendarState();
 }
 
 class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
   late DateTime _visibleMonth; // normalized to first of month
   bool _localeReady = false;
+  String _monthTitle = '';
+  List<String> _weekdayLabels = const [];
 
   @override
   void initState() {
@@ -52,19 +68,58 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
 
   Future<void> _ensureLocale() async {
     try {
-      await tbd.ThaiCalendar.ensureInitialized();
+      await tbd.thaiDateService.initializeLocale('th_TH');
     } catch (_) {
       // ignore, we'll still try to render numeric-only parts
     }
-    if (mounted) setState(() => _localeReady = true);
+    if (mounted) {
+      _localeReady = true;
+      await _computeLocaleTexts();
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _computeLocaleTexts() async {
+    final locale = widget.locale;
+    try {
+      // Month title
+      _monthTitle = tbd.format(
+        _visibleMonth,
+        format: 'MMMM yyyy',
+        era: widget.era,
+        locale: locale,
+      );
+      // Weekday labels starting from configured start
+      final start = widget.firstWeekday == DateTime.sunday
+          ? DateTime.sunday
+          : DateTime.monday;
+      final order = List<int>.generate(7, (i) => ((start + i - 1) % 7) + 1);
+      final base = DateTime(2025, 8, 25); // arbitrary week reference (Mon)
+      _weekdayLabels = [
+        for (final wd in order)
+          tbd.format(
+            base.add(Duration(days: wd - base.weekday)),
+            format: 'EEE',
+            era: tbd.Era.ce,
+            locale: locale,
+          ),
+      ];
+    } catch (_) {
+      // Fallbacks will be used in build
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = widget.locale;
-    final monthTitle = _localeReady
-        ? tbd.format(_visibleMonth, format: 'MMMM yyyy', era: widget.era, locale: locale)
-        : tbd.ThaiCalendar.formatSync(_visibleMonth, pattern: 'yyyy-MM', era: widget.era);
+    final monthTitle = _localeReady && _monthTitle.isNotEmpty
+        ? _monthTitle
+        : tbd.thaiDateService.formatSync(
+            tbd.ThaiDate.fromDateTime(_visibleMonth),
+            pattern: 'yyyy-MM',
+            era: widget.era,
+            locale: locale,
+          );
 
     final grid = _buildMonthGrid();
 
@@ -72,41 +127,66 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.headerBuilder != null)
-          widget.headerBuilder!(context, _visibleMonth, widget.era, locale, _prevMonth, _nextMonth)
+          widget.headerBuilder!(
+            context,
+            _visibleMonth,
+            widget.era,
+            locale,
+            _prevMonth,
+            _nextMonth,
+          )
         else
           Row(
             children: [
-              IconButton(icon: const Icon(Icons.chevron_left), onPressed: _prevMonth),
-              Expanded(
-                child: Center(child: Text(monthTitle, style: Theme.of(context).textTheme.titleMedium)),
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: _prevMonth,
               ),
-              IconButton(icon: const Icon(Icons.chevron_right), onPressed: _nextMonth),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    monthTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: _nextMonth,
+              ),
             ],
           ),
-        if (widget.showWeekdayHeaders) _localeReady ? _buildWeekdayHeader(locale) : const SizedBox(height: 0),
+        if (widget.showWeekdayHeaders)
+          _localeReady
+              ? _buildWeekdayHeader(locale)
+              : const SizedBox(height: 0),
         grid,
       ],
     );
   }
 
   Widget _buildWeekdayHeader(String? locale) {
-    final start = widget.firstWeekday == DateTime.sunday ? DateTime.sunday : DateTime.monday;
-    final order = List<int>.generate(7, (i) => ((start + i - 1) % 7) + 1); // 1..7 starting from start
+    final start = widget.firstWeekday == DateTime.sunday
+        ? DateTime.sunday
+        : DateTime.monday;
+    final order = List<int>.generate(
+      7,
+      (i) => ((start + i - 1) % 7) + 1,
+    ); // 1..7 starting from start
     final todayWeek = DateTime.now();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        for (final wd in order)
+        for (var idx = 0; idx < order.length; idx++)
           Expanded(
             child: Center(
               child: Text(
-                // Use any date that has this weekday, format with 'EEE'
-                tbd.format(
-                  todayWeek.add(Duration(days: (wd - todayWeek.weekday))),
-                  format: 'EEE',
-                  era: tbd.Era.ce,
-                  locale: locale,
-                ),
+                _weekdayLabels.isNotEmpty
+                    ? _weekdayLabels[idx]
+                    : todayWeek
+                          .add(Duration(days: (order[idx] - todayWeek.weekday)))
+                          .weekday
+                          .toString(),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -119,7 +199,9 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
     final first = _visibleMonth;
     final daysInMonth = DateTime(first.year, first.month + 1, 0).day;
     final firstWeekday = first.weekday; // Mon=1..Sun=7
-    final weekStart = widget.firstWeekday == DateTime.sunday ? DateTime.sunday : DateTime.monday;
+    final weekStart = widget.firstWeekday == DateTime.sunday
+        ? DateTime.sunday
+        : DateTime.monday;
     final leading = _leadingEmptySlots(firstWeekday, weekStart);
     // final totalCells = leading + daysInMonth;
 
@@ -131,7 +213,9 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
     // days
     for (var d = 1; d <= daysInMonth; d++) {
       final date = DateTime(first.year, first.month, d);
-      final isSelected = widget.selectedDate != null && _isSameDate(widget.selectedDate!, date);
+      final isSelected =
+          widget.selectedDate != null &&
+          _isSameDate(widget.selectedDate!, date);
       cells.add(_buildDayCell(date, isSelected));
     }
     // pad trailing to complete rows
@@ -139,7 +223,12 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
       cells.add(const SizedBox.shrink());
     }
 
-    return GridView.count(crossAxisCount: 7, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), children: cells);
+    return GridView.count(
+      crossAxisCount: 7,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: cells,
+    );
   }
 
   int _leadingEmptySlots(int firstWeekday, int weekStart) {
@@ -156,15 +245,26 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
   Widget _buildDayCell(DateTime date, bool selected) {
     bool disabled = false;
     if (widget.firstDate != null) {
-      final fd = DateTime(widget.firstDate!.year, widget.firstDate!.month, widget.firstDate!.day);
+      final fd = DateTime(
+        widget.firstDate!.year,
+        widget.firstDate!.month,
+        widget.firstDate!.day,
+      );
       disabled = disabled || date.isBefore(fd);
     }
     if (widget.lastDate != null) {
-      final ld = DateTime(widget.lastDate!.year, widget.lastDate!.month, widget.lastDate!.day);
+      final ld = DateTime(
+        widget.lastDate!.year,
+        widget.lastDate!.month,
+        widget.lastDate!.day,
+      );
       disabled = disabled || date.isAfter(ld);
     }
     if (widget.dayBuilder != null) {
-      return InkWell(onTap: disabled ? null : () => widget.onDateSelected?.call(date), child: widget.dayBuilder!(context, date, selected, disabled));
+      return InkWell(
+        onTap: disabled ? null : () => widget.onDateSelected?.call(date),
+        child: widget.dayBuilder!(context, date, selected, disabled),
+      );
     }
     return InkWell(
       onTap: disabled ? null : () => widget.onDateSelected?.call(date),
@@ -172,13 +272,17 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
         alignment: Alignment.center,
         margin: const EdgeInsets.all(2),
         decoration: BoxDecoration(
-          color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15) : null,
+          color: selected
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15)
+              : null,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           date.day.toString(),
           style: TextStyle(
-            color: disabled ? Theme.of(context).disabledColor : (selected ? Theme.of(context).colorScheme.primary : null),
+            color: disabled
+                ? Theme.of(context).disabledColor
+                : (selected ? Theme.of(context).colorScheme.primary : null),
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -190,13 +294,24 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
     setState(() {
       _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month - 1, 1);
     });
+    if (_localeReady) {
+      _computeLocaleTexts().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   void _nextMonth() {
     setState(() {
       _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month + 1, 1);
     });
+    if (_localeReady) {
+      _computeLocaleTexts().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
-  bool _isSameDate(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 }

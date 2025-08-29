@@ -139,7 +139,8 @@ DateTime parse(String input, {String format = 'yyyy-MM-dd'}) {
       final year = int.parse(match.group(0)!);
       if (year >= 2400) {
         // Looks like BE year, convert to CE
-        final normalizedInput = input.replaceFirst(match.group(0)!, (year - 543).toString());
+        final normalizedInput =
+            input.replaceFirst(match.group(0)!, (year - 543).toString());
         return DateTime.parse(normalizedInput);
       }
     }
@@ -237,8 +238,13 @@ enum ThaiDatePart { day, month, year }
 /// Legacy ThaiCalendar API shim that maps to ThaiDateService.
 class ThaiCalendar {
   /// Ensure date symbols for a locale are loaded. Defaults to Thai.
-  static Future<void> ensureInitialized([String? locale, ThaiLanguage? language]) async {
-    final loc = language != null ? _languageToLocale(language) : (locale?.isNotEmpty == true ? locale! : ThaiDateSettings.defaultLocale);
+  static Future<void> ensureInitialized(
+      [String? locale, ThaiLanguage? language]) async {
+    final loc = language != null
+        ? _languageToLocale(language)
+        : (locale?.isNotEmpty == true
+            ? locale!
+            : ThaiDateSettings.defaultLocale);
     await ThaiDateService().initializeLocale(loc);
   }
 
@@ -250,7 +256,11 @@ class ThaiCalendar {
     String? locale,
     ThaiLanguage? language,
   }) {
-    final loc = language != null ? _languageToLocale(language) : (locale?.isNotEmpty == true ? locale! : ThaiDateSettings.defaultLocale);
+    final loc = language != null
+        ? _languageToLocale(language)
+        : (locale?.isNotEmpty == true
+            ? locale!
+            : ThaiDateSettings.defaultLocale);
 
     // Preset patterns (legacy)
     String preset(String key) {
@@ -272,7 +282,9 @@ class ThaiCalendar {
           final y = era == Era.be ? (date.year + 543) : date.year;
           return '${y.toString().padLeft(4, '0')}-${_pad2(date.month)}-${_pad2(date.day)}';
         case 'compact':
-          return _pad2(date.day) + _pad2(date.month) + (era == Era.be ? (date.year + 543) : date.year).toString();
+          return _pad2(date.day) +
+              _pad2(date.month) +
+              (era == Era.be ? (date.year + 543) : date.year).toString();
         case 'slashTime':
           final y = era == Era.be ? (date.year + 543) : date.year;
           return '${_pad2(date.day)}/${_pad2(date.month)}/$y ${_pad2(date.hour)}:${_pad2(date.minute)}';
@@ -301,13 +313,15 @@ class ThaiCalendar {
     String? locale,
     ThaiLanguage? language,
   }) {
-    return format(DateTime.now(), pattern: pattern, era: era, locale: locale, language: language);
+    return format(DateTime.now(),
+        pattern: pattern, era: era, locale: locale, language: language);
   }
 
   /// Format using an explicit DateFormat.
   static String formatWith(DateFormat df, DateTime date, {Era era = Era.be}) {
     final pattern = df.pattern ?? 'yyyy-MM-dd';
-    final loc = (df.locale.isEmpty) ? ThaiDateSettings.defaultLocale : df.locale;
+    final loc =
+        (df.locale.isEmpty) ? ThaiDateSettings.defaultLocale : df.locale;
     if (era == Era.ce) {
       return DateFormat(pattern, loc).format(date);
     }
@@ -323,7 +337,8 @@ class ThaiCalendar {
     ThaiLanguage? language,
   }) async {
     await ensureInitialized(locale, language);
-    return format(date, pattern: pattern, era: era, locale: locale, language: language);
+    return format(date,
+        pattern: pattern, era: era, locale: locale, language: language);
   }
 
   /// Convenience: ensure locale data then format the current time.
@@ -334,7 +349,8 @@ class ThaiCalendar {
     ThaiLanguage? language,
   }) async {
     await ensureInitialized(locale, language);
-    return formatNow(pattern: pattern, era: era, locale: locale, language: language);
+    return formatNow(
+        pattern: pattern, era: era, locale: locale, language: language);
   }
 
   /// Synchronous format for numeric-only patterns (no localized names).
@@ -354,8 +370,13 @@ class ThaiCalendar {
     String? locale,
     ThaiLanguage? language,
   }) {
-    final loc = language != null ? _languageToLocale(language) : (locale?.isNotEmpty == true ? locale! : ThaiDateSettings.defaultLocale);
-    final thai = ThaiDateService().parse(input, pattern: customPattern, locale: loc);
+    final loc = language != null
+        ? _languageToLocale(language)
+        : (locale?.isNotEmpty == true
+            ? locale!
+            : ThaiDateSettings.defaultLocale);
+    final thai =
+        ThaiDateService().parse(input, pattern: customPattern, locale: loc);
     return thai?.toDateTime();
   }
 
@@ -367,8 +388,13 @@ class ThaiCalendar {
     String? locale,
     ThaiLanguage? language,
   }) {
-    final loc = language != null ? _languageToLocale(language) : (locale?.isNotEmpty == true ? locale! : ThaiDateSettings.defaultLocale);
-    final thai = ThaiDateService().parseWithEra(input, pattern: pattern, era: era, locale: loc);
+    final loc = language != null
+        ? _languageToLocale(language)
+        : (locale?.isNotEmpty == true
+            ? locale!
+            : ThaiDateSettings.defaultLocale);
+    final thai = ThaiDateService()
+        .parseWithEra(input, pattern: pattern, era: era, locale: loc);
     return thai?.toDateTime();
   }
 
@@ -380,7 +406,8 @@ class ThaiCalendar {
       if (m != null) {
         final y = int.tryParse(m.group(1)!);
         if (y != null && y >= 2400) {
-          return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond);
+          return DateTime(dt.year - 543, dt.month, dt.day, dt.hour, dt.minute,
+              dt.second, dt.millisecond, dt.microsecond);
         }
       }
       return dt;
@@ -416,8 +443,10 @@ class ThaiCalendar {
     String separator = ' ',
     bool monthShort = false,
   }) {
-    final loc = (locale?.isNotEmpty == true) ? locale! : ThaiDateSettings.defaultLocale;
-    final effectiveOrder = order ?? const [ThaiDatePart.day, ThaiDatePart.month, ThaiDatePart.year];
+    final loc =
+        (locale?.isNotEmpty == true) ? locale! : ThaiDateSettings.defaultLocale;
+    final effectiveOrder = order ??
+        const [ThaiDatePart.day, ThaiDatePart.month, ThaiDatePart.year];
     String day() => date.day.toString();
     String month() => DateFormat(monthShort ? 'MMM' : 'MMMM', loc).format(date);
     String year() => (era == Era.be ? date.year + 543 : date.year).toString();
@@ -445,10 +474,12 @@ class ThaiCalendar {
   static String _replaceYearWithBE(String s, int ceYear) {
     final be = (ceYear + 543).toString();
     final ce = ceYear.toString();
-    return s.replaceAllMapped(RegExp(r'\d{4}'), (m) => m.group(0) == ce ? be : m.group(0)!);
+    return s.replaceAllMapped(
+        RegExp(r'\d{4}'), (m) => m.group(0) == ce ? be : m.group(0)!);
   }
 
-  static String _tokenAwareFormat(DateTime dt, String pattern, {String? locale}) {
+  static String _tokenAwareFormat(DateTime dt, String pattern,
+      {String? locale}) {
     final loc = locale ?? Intl.getCurrentLocale();
     final beYear = dt.year + 543;
 
@@ -517,7 +548,12 @@ class ThaiFormatter {
     this.language,
   });
 
-  ThaiFormatter copyWith({String? pattern, Era? era, String? locale, ThaiLanguage? language}) => ThaiFormatter(
+  ThaiFormatter copyWith(
+          {String? pattern,
+          Era? era,
+          String? locale,
+          ThaiLanguage? language}) =>
+      ThaiFormatter(
         pattern: pattern ?? this.pattern,
         era: era ?? this.era,
         locale: locale ?? this.locale,

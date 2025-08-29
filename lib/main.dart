@@ -14,7 +14,6 @@ import 'package:thai_buddhist_date_pickers/thai_buddhist_date_pickers.dart'
 Future<void> main() async {
   // Ensure Thai locale data is loaded for month/weekday names
   WidgetsFlutterBinding.ensureInitialized();
-  await tbd.ThaiCalendar.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -25,7 +24,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Thai Buddhist Date Calendar',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo)),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+      ),
       home: const MyHomePage(title: 'Calendar (พ.ศ./ค.ศ.)'),
     );
   }
@@ -69,13 +70,26 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BuddhistGregorianCalendar(era: _era, selectedDate: _selected, onDateSelected: (d) => setState(() => _selected = d), locale: 'th_TH'),
+            BuddhistGregorianCalendar(
+              era: _era,
+              selectedDate: _selected,
+              onDateSelected: (d) => setState(() => _selected = d),
+              locale: 'th_TH',
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
                 const Text('เลือกวันที่:'),
                 const SizedBox(width: 8),
-                Text(_selected == null ? '-' : tbd.format(_selected!, format: 'dd/MM/yyyy', era: _era, locale: 'th_TH')),
+                Text(
+                  _selected == null
+                      ? '-'
+                      : _selected!.toThaiStringSync(
+                          pattern: 'dd/MM/yyyy',
+                          era: _era,
+                          locale: 'th_TH',
+                        ),
+                ),
               ],
             ),
             if (_range != null) ...[
@@ -85,24 +99,42 @@ class _MyHomePageState extends State<MyHomePage> {
                   const Text('ช่วงวันที่:'),
                   const SizedBox(width: 8),
                   Text(
-                    '${tbd.format(_range!.start, format: 'dd/MM/yyyy', era: _era, locale: 'th_TH')} - '
-                    '${tbd.format(_range!.end, format: 'dd/MM/yyyy', era: _era, locale: 'th_TH')}',
+                    '${_range!.start.toThaiStringSync(pattern: 'dd/MM/yyyy', era: _era, locale: 'th_TH')} - '
+                    '${_range!.end.toThaiStringSync(pattern: 'dd/MM/yyyy', era: _era, locale: 'th_TH')}',
                   ),
                 ],
               ),
             ],
             if (_multi != null) ...[
               const SizedBox(height: 8),
-              Row(children: [const Text('หลายวันที่:'), const SizedBox(width: 8), Text(_multi!.isEmpty ? '-' : '${_multi!.length} รายการ')]),
+              Row(
+                children: [
+                  const Text('หลายวันที่:'),
+                  const SizedBox(width: 8),
+                  Text(_multi!.isEmpty ? '-' : '${_multi!.length} รายการ'),
+                ],
+              ),
               Padding(
                 padding: const EdgeInsets.only(left: 88),
                 child: Text(
                   _multi!.isEmpty
                       ? ''
                       : (() {
-                          final sorted = _multi!.toList()..sort((a, b) => a.compareTo(b));
-                          final shown = sorted.take(3).map((d) => tbd.format(d, format: 'dd/MM', era: _era, locale: 'th_TH')).join(', ');
-                          final more = sorted.length > 3 ? ' (+${sorted.length - 3} more)' : '';
+                          final sorted = _multi!.toList()
+                            ..sort((a, b) => a.compareTo(b));
+                          final shown = sorted
+                              .take(3)
+                              .map(
+                                (d) => d.toThaiStringSync(
+                                  pattern: 'dd/MM',
+                                  era: _era,
+                                  locale: 'th_TH',
+                                ),
+                              )
+                              .join(', ');
+                          final more = sorted.length > 3
+                              ? ' (+${sorted.length - 3} more)'
+                              : '';
                           return '$shown$more';
                         })(),
                 ),
@@ -110,7 +142,13 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
             if (_formattedOut != null) ...[
               const SizedBox(height: 8),
-              Row(children: [const Text('Formatted:'), const SizedBox(width: 8), Text(_formattedOut!)]),
+              Row(
+                children: [
+                  const Text('Formatted:'),
+                  const SizedBox(width: 8),
+                  Text(_formattedOut!),
+                ],
+              ),
             ],
             const SizedBox(height: 16),
             Wrap(
@@ -119,7 +157,12 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 FilledButton.icon(
                   onPressed: () async {
-                    final picked = await showThaiDatePicker(context, initialDate: _selected ?? DateTime.now(), era: _era, locale: 'th_TH');
+                    final picked = await showThaiDatePicker(
+                      context,
+                      initialDate: _selected ?? DateTime.now(),
+                      era: _era,
+                      locale: 'th_TH',
+                    );
                     if (picked != null) setState(() => _selected = picked);
                   },
                   icon: const Icon(Icons.event),
@@ -142,7 +185,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
                 FilledButton.icon(
                   onPressed: () async {
-                    final m = await showThaiMultiDatePicker(context, era: _era, locale: 'th_TH');
+                    final m = await showThaiMultiDatePicker(
+                      context,
+                      era: _era,
+                      locale: 'th_TH',
+                    );
                     if (m != null) setState(() => _multi = m);
                   },
                   icon: const Icon(Icons.event_repeat),
@@ -150,7 +197,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 FilledButton.icon(
                   onPressed: () async {
-                    final picked = await showThaiDatePickerFullscreen(context, initialDate: _selected ?? DateTime.now(), era: _era, locale: 'th_TH');
+                    final picked = await showThaiDatePickerFullscreen(
+                      context,
+                      initialDate: _selected ?? DateTime.now(),
+                      era: _era,
+                      locale: 'th_TH',
+                    );
                     if (picked != null) setState(() => _selected = picked);
                   },
                   icon: const Icon(Icons.fullscreen),

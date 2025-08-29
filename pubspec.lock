@@ -206,14 +206,14 @@ packages:
       path: "packages/thai_buddhist_date"
       relative: true
     source: path
-    version: "0.2.1"
+    version: "0.2.3"
   thai_buddhist_date_pickers:
     dependency: "direct main"
     description:
       path: "packages/thai_buddhist_date_pickers"
       relative: true
     source: path
-    version: "0.1.1"
+    version: "0.1.2"
   vector_math:
     dependency: transitive
     description:

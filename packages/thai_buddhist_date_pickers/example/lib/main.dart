@@ -4,7 +4,7 @@ import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await tbd.ThaiCalendar.ensureInitialized();
+  await tbd.ThaiDateService().initializeLocale('th_TH');
   runApp(const MyApp());
 }
 

@@ -44,6 +44,50 @@
 				"$dart-json"
 			],
 			"group": "build"
+		},
+		{
+			"label": "analyze-core",
+			"type": "shell",
+			"command": "dart analyze packages/thai_buddhist_date",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
+		},
+		{
+			"label": "format-core",
+			"type": "shell",
+			"command": "dart format packages/thai_buddhist_date",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze-core-2",
+			"type": "shell",
+			"command": "dart analyze packages/thai_buddhist_date",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
+		},
+		{
+			"label": "lint-docs-core",
+			"type": "shell",
+			"command": "dart analyze packages/thai_buddhist_date && dart format packages/thai_buddhist_date && dart analyze packages/thai_buddhist_date",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-json"
+			],
+			"group": "build"
 		}
 	]
 }

@@ -1,0 +1,15 @@
+name: thai_buddhist_date_example_app
+description: Minimal Flutter example for thai_buddhist_date package.
+publish_to: 'none'
+
+environment:
+	sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+	flutter:
+		sdk: flutter
+	thai_buddhist_date:
+		path: ../../
+
+flutter:
+	uses-material-design: true

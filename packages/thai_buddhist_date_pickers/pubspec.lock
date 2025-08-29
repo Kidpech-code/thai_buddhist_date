@@ -195,11 +195,10 @@ packages:
   thai_buddhist_date:
     dependency: "direct main"
     description:
-      name: thai_buddhist_date
-      sha256: bfe41f109b4f62c4792ead6a2e033ec67bd439a102381100f5ab9532dae2d50d
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
+      path: "../thai_buddhist_date"
+      relative: true
+    source: path
+    version: "0.2.3"
   vector_math:
     dependency: transitive
     description:

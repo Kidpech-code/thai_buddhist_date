@@ -79,6 +79,8 @@ class BuddhistGregorianCalendar extends StatefulWidget {
 class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
   late DateTime _visibleMonth;
   bool _localeReady = false;
+  String _monthTitle = '';
+  List<String> _weekdayLabels = const [];
 
   @override
   void initState() {
@@ -91,19 +93,52 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
 
   Future<void> _ensureLocale() async {
     try {
-      await tbd.ThaiCalendar.ensureInitialized();
+      await tbd.ThaiDateService().initializeLocale(widget.locale);
     } catch (_) {}
-    if (mounted) setState(() => _localeReady = true);
+    if (mounted) {
+      _localeReady = true;
+      await _computeLocaleTexts();
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _computeLocaleTexts() async {
+    final locale = widget.locale;
+    try {
+      _monthTitle = tbd.format(
+        _visibleMonth,
+        format: 'MMMM yyyy',
+        era: widget.era,
+        locale: locale,
+      );
+      final start = widget.firstWeekday == DateTime.sunday
+          ? DateTime.sunday
+          : DateTime.monday;
+      final order = List<int>.generate(7, (i) => ((start + i - 1) % 7) + 1);
+      final base = DateTime(2025, 8, 25);
+      _weekdayLabels = [
+        for (final wd in order)
+          tbd.format(
+            base.add(Duration(days: wd - base.weekday)),
+            format: 'EEE',
+            era: tbd.Era.ce,
+            locale: locale,
+          ),
+      ];
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = widget.locale;
-    final monthTitle = _localeReady
-        ? tbd.format(_visibleMonth,
-            format: 'MMMM yyyy', era: widget.era, locale: locale)
-        : tbd.ThaiCalendar.formatSync(_visibleMonth,
-            pattern: 'yyyy-MM', era: widget.era);
+    final monthTitle = _localeReady && _monthTitle.isNotEmpty
+        ? _monthTitle
+        : tbd.ThaiDateService().formatSync(
+            tbd.ThaiDate.fromDateTime(_visibleMonth, era: widget.era),
+            pattern: 'yyyy-MM',
+            era: widget.era,
+            locale: locale,
+          );
 
     final grid = _buildMonthGrid();
 
@@ -119,10 +154,9 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
               IconButton(
                   icon: const Icon(Icons.chevron_left), onPressed: _prevMonth),
               Expanded(
-                child: Center(
-                    child: Text(monthTitle,
-                        style: Theme.of(context).textTheme.titleMedium)),
-              ),
+                  child: Center(
+                      child: Text(monthTitle,
+                          style: Theme.of(context).textTheme.titleMedium))),
               IconButton(
                   icon: const Icon(Icons.chevron_right), onPressed: _nextMonth),
             ],
@@ -145,16 +179,16 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        for (final wd in order)
+        for (var idx = 0; idx < order.length; idx++)
           Expanded(
             child: Center(
               child: Text(
-                tbd.format(
-                  todayWeek.add(Duration(days: (wd - todayWeek.weekday))),
-                  format: 'EEE',
-                  era: tbd.Era.ce,
-                  locale: locale,
-                ),
+                _weekdayLabels.isNotEmpty
+                    ? _weekdayLabels[idx]
+                    : todayWeek
+                        .add(Duration(days: (order[idx] - todayWeek.weekday)))
+                        .weekday
+                        .toString(),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -247,12 +281,22 @@ class _BuddhistGregorianCalendarState extends State<BuddhistGregorianCalendar> {
     setState(() {
       _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month - 1, 1);
     });
+    if (_localeReady) {
+      _computeLocaleTexts().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   void _nextMonth() {
     setState(() {
       _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month + 1, 1);
     });
+    if (_localeReady) {
+      _computeLocaleTexts().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   bool _isSameDate(DateTime a, DateTime b) =>
