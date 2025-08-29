@@ -4,6 +4,7 @@
 
 - Fix issue tracker URL to be HEAD-reachable; add homepage pointing to package folder.
 - Bump dependency: thai_buddhist_date ^0.2.2.
+- README: switch locale init to `ThaiDateService().initializeLocale('th_TH')`.
 - No code changes.
 
 ## 0.1.1

@@ -1,9 +1,10 @@
 # Changelog
 
-## 0.2.3 - README: add formatNow examples
+## 0.2.3 - Docs: sync top-level helpers, locale init guidance, compatibility
 
-- Add ThaiCalendar.formatNow examples alongside all DateTime(2025, 8, 25) snippets for clarity.
-- Minor docs tidy for Thai/English sections and example outputs.
+- README overhaul: top-level `format/formatNow` examples are synchronous; removed unnecessary `await`.
+- Added "Backward compatibility and sync vs async" section and clarified `ThaiDateService.initializeLocale('th_TH')` usage.
+- Cleaned Thai section examples to be consistent with current API.
 
 ## 0.2.2 - Thai full date preset, custom parts, explicit-era parsing, docs
 
