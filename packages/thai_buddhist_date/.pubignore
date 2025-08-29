@@ -1,0 +1,5 @@
+# Exclude specific test files that are gitignored to avoid pub publish warnings
+# These files are useful for local CI only.
+test/extra_tests.dart
+test/thai_buddhist_date_test.dart
+test/thai_buddhist_date_test.dart.backup
