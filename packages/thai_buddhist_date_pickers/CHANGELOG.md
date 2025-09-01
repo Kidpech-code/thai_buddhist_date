@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.5
+
+- Docs-only: Add labeled subsections in README (Range, Multi-date, Fullscreen) and expand example usage.
+- No code changes.
+
+## 0.1.4
+
+- Fix: Replace Color.withValues(...) with withOpacity(...) for wider Flutter SDK compatibility.
+- Docs: Update README install versions.
+- Chore: Bump dependency thai_buddhist_date to ^0.2.5.
+
 ## 0.1.3
 
 - Docs-only: README updated to use `ThaiDateService().initializeLocale('th_TH')`.

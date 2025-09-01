@@ -13,8 +13,8 @@ Flutter calendar and pickers for Thai Buddhist (พ.ศ.) and Gregorian (ค.ศ
 
 ```yaml
 dependencies:
-  thai_buddhist_date_pickers: ^0.1.2
-  thai_buddhist_date: ^0.2.3
+  thai_buddhist_date_pickers: ^0.1.5
+  thai_buddhist_date: ^0.2.5
 ```
 
 ## Usage
@@ -30,6 +30,41 @@ Initialize Thai locale once if you want localized month/weekday names:
 
 ```dart
 await tbd.ThaiDateService().initializeLocale('th_TH');
+```
+
+## Picker variants
+
+### Range picker
+
+```dart
+final range = await showThaiDateRangePicker(
+  context,
+  era: tbd.Era.be,
+  locale: 'th_TH',
+);
+// range?.start, range?.end
+```
+
+### Multi-date picker
+
+```dart
+final days = await showThaiMultiDatePicker(
+  context,
+  era: tbd.Era.be,
+  locale: 'th_TH',
+);
+// days is Set<DateTime>
+```
+
+### Fullscreen picker
+
+```dart
+final d = await showThaiDatePickerFullscreen(
+  context,
+  initialDate: DateTime.now(),
+  era: tbd.Era.be,
+  locale: 'th_TH',
+);
 ```
 
 ## Example
@@ -56,21 +91,83 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(title: const Text('Thai Pickers Example')),
         body: Center(
-          child: Builder(
-            builder: (ctx) => ElevatedButton(
-              onPressed: () async {
-                final d = await showThaiDatePicker(
-                  ctx,
-                  initialDate: DateTime.now(),
-                  era: tbd.Era.be,
-                  locale: 'th_TH',
-                );
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  SnackBar(content: Text('Picked: \\${d ?? '-'}')),
-                );
-              },
-              child: const Text('Pick a date (พ.ศ.)'),
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Builder(
+                builder: (ctx) => ElevatedButton(
+                  onPressed: () async {
+                    final d = await showThaiDatePicker(
+                      ctx,
+                      initialDate: DateTime.now(),
+                      era: tbd.Era.be,
+                      locale: 'th_TH',
+                    );
+                    final label = d == null ? '-' : tbd.format(d, pattern: 'dmy', era: tbd.Era.be);
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text('Picked date (พ.ศ.): $label')),
+                    );
+                  },
+                  child: const Text('Pick a date (พ.ศ.)'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Builder(
+                builder: (ctx) => ElevatedButton(
+                  onPressed: () async {
+                    final dt = await showThaiDateTimePicker(
+                      ctx,
+                      initialDateTime: DateTime.now(),
+                      era: tbd.Era.ce,
+                      locale: 'th_TH',
+                      formatString: 'dd/MM/yyyy HH:mm',
+                    );
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text('Picked date-time (ค.ศ.): ${dt ?? '-'}')),
+                    );
+                  },
+                  child: const Text('Pick date-time (ค.ศ.)'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Builder(
+                builder: (ctx) => ElevatedButton(
+                  onPressed: () async {
+                    final range = await showThaiDateRangePicker(
+                      ctx,
+                      era: tbd.Era.be,
+                      locale: 'th_TH',
+                    );
+                    final text = range == null
+                        ? '-'
+                        : '${tbd.format(range.start, pattern: 'dmy')} → ${tbd.format(range.end, pattern: 'dmy')}';
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text('Picked range: $text')),
+                    );
+                  },
+                  child: const Text('Pick range (พ.ศ.)'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Builder(
+                builder: (ctx) => ElevatedButton(
+                  onPressed: () async {
+                    final multiple = await showThaiMultiDatePicker(
+                      ctx,
+                      era: tbd.Era.be,
+                      locale: 'th_TH',
+                    );
+                    final list = (multiple ?? const <DateTime>{})
+                        .map((d) => tbd.format(d, pattern: 'dd/MM/yyyy'))
+                        .join(', ');
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text('Picked multiple: ${list.isEmpty ? '-' : list}')),
+                    );
+                  },
+                  child: const Text('Pick multiple (พ.ศ.)'),
+                ),
+              ),
+            ],
           ),
         ),
       ),
