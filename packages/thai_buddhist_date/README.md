@@ -24,7 +24,7 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.2.4
+  thai_buddhist_date: ^0.2.6
 ```
 
 Then run `dart pub get` or `flutter pub get`.
@@ -117,6 +117,65 @@ final d = DateTime(2025, 8, 25);
 print(format(d, pattern: 'dd/MM/yyyy'));       // 25/08/2568 (BE)
 print(format(d, pattern: 'MMMM yyyy'));        // สิงหาคม 2568 (BE)
 print(format(d, pattern: 'MMMM yyyy', era: Era.ce)); // สิงหาคม 2025 (CE)
+```
+
+### Creative parse/format helpers (BE/CE, all common formats)
+
+You can use `parseThaiDate` and `formatThaiDate` for flexible, ergonomic conversion between String and DateTime, supporting BE/CE and many formats:
+
+```dart
+// Parsing (String to DateTime)
+parseThaiDate('03092568');         // BE, compact
+parseThaiDate('03-09-2568');       // BE, dash
+parseThaiDate('03/09/2568');       // BE, slash
+parseThaiDate('03.09.2568');       // BE, dot
+parseThaiDate('2568-09-03');       // BE, ISO
+parseThaiDate('2568.09.03');       // BE, ISO dot
+parseThaiDate('2568/09/03');       // BE, ISO slash
+parseThaiDate('3/9/2568');         // BE, single-digit
+parseThaiDate('3-9-2568');         // BE, single-digit dash
+parseThaiDate('3.9.2568');         // BE, single-digit dot
+
+// Parsing CE
+parseThaiDate('03092025', era: Era.ce); // CE, compact
+parseThaiDate('03-09-2025', era: Era.ce); // CE, dash
+parseThaiDate('03/09/2025', era: Era.ce); // CE, slash
+parseThaiDate('03.09.2025', era: Era.ce); // CE, dot
+parseThaiDate('2025-09-03', era: Era.ce); // CE, ISO
+parseThaiDate('2025.09.03', era: Era.ce); // CE, ISO dot
+parseThaiDate('2025/09/03', era: Era.ce); // CE, ISO slash
+parseThaiDate('3/9/2025', era: Era.ce);   // CE, single-digit
+parseThaiDate('3-9-2025', era: Era.ce);   // CE, single-digit dash
+parseThaiDate('3.9.2025', era: Era.ce);   // CE, single-digit dot
+
+// Formatting (DateTime to String)
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'dd/MM/yyyy'); // '03/09/2568'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'dd/MM/yyyy'); // '03/09/2025'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'dd-MM-yyyy'); // '03-09-2568'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'dd-MM-yyyy'); // '03-09-2025'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'dd.MM.yyyy'); // '03.09.2568'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'dd.MM.yyyy'); // '03.09.2025'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'yyyy-MM-dd'); // '2568-09-03'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'yyyy-MM-dd'); // '2025-09-03'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'yyyy.MM.dd'); // '2568.09.03'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'yyyy.MM.dd'); // '2025.09.03'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'yyyy/MM/dd'); // '2568/09/03'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'yyyy/MM/dd'); // '2025/09/03'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'd/M/yyyy');   // '3/9/2568'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'd/M/yyyy');   // '3/9/2025'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'd-M-yyyy');   // '3-9-2568'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'd-M-yyyy');   // '3-9-2025'
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'd.M.yyyy');   // '3.9.2568'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'd.M.yyyy');   // '3.9.2025'
+
+// Custom formats
+formatThaiDate(DateTime(2568,9,3), era: Era.be, format: 'ddMMyyyy'); // '03092568'
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'ddMMyyyy'); // '03092025'
+
+// Extensible: add your own formats
+final customFormats = {'myCustom': 'yyyyMMdd'};
+parseThaiDate('20250903', format: 'yyyyMMdd', era: Era.ce, customFormats: customFormats);
+formatThaiDate(DateTime(2025,9,3), era: Era.ce, format: 'yyyyMMdd'); // '20250903'
 ```
 
 ### Explicit-era parsing for BE inputs
