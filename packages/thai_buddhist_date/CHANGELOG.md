@@ -1,13 +1,18 @@
 # Changelog
 
-## 0.2.4 - Docs-only polish for publication
+## 0.2.6 - Version bump
 
-- README: clarify sync top-level helpers, locale initialization, and legacy shims.
-- No code changes.
+- Bump package version to 0.2.6.
+- Minor packaging fixes and example pubspec indentation.
 
 ## 0.2.5 - Formatting only
 
 - Run `dart format` across all Dart sources to satisfy pub score formatting checks.
+
+## 0.2.4 - Docs-only polish for publication
+
+- README: clarify sync top-level helpers, locale initialization, and legacy shims.
+- No code changes.
 
 ## 0.2.3 - Docs: sync top-level helpers, locale init guidance, compatibility
 
