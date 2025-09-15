@@ -10,7 +10,7 @@
 <details>
 <summary>🎬 Click to view video demo</summary>
 
-[![Thai Buddhist Date Pickers Video](../../assets/images/thai_buddhist_date_pickers_photo_1.png)](../../assets/videos/thai_buddhist_date_pickers_video.mp4)
+<video src="../../assets/videos/thai_buddhist_date_pickers_video.mp4" controls autoplay loop muted playsinline style="max-width:100%;width:600px;" poster="../../assets/images/thai_buddhist_date_pickers_photo_1.png"></video>
 
 <a href="../../assets/videos/thai_buddhist_date_pickers_video.mp4">▶️ Watch full video (MP4)</a>
 
