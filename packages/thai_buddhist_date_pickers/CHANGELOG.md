@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6 - 2025-09-15
+
+- Docs: Add screenshots and video demo to README.
+- Version bump to 0.1.6.
+
 ## 0.1.5
 
 - Docs-only: Add labeled subsections in README (Range, Multi-date, Fullscreen) and expand example usage.

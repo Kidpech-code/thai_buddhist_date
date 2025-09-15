@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Publish dry-run pickers",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"pub",
+				"publish",
+				"--dry-run"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-build"
+			],
+			"group": "build"
+		}
+	]
+}

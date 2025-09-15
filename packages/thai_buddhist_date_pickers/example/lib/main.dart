@@ -41,8 +41,11 @@ class _HomePageState extends State<HomePage> {
                   locale: 'th_TH',
                 );
                 if (!context.mounted) return;
-                final label = d == null ? '-' : tbd.format(d, pattern: 'dmy', era: tbd.Era.be);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Picked date (พ.ศ.): $label')));
+                final label = d == null
+                    ? '-'
+                    : tbd.format(d, pattern: 'dmy', era: tbd.Era.be);
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Picked date (พ.ศ.): $label')));
               },
               child: const Text('Pick a date (พ.ศ.)'),
             ),
@@ -57,7 +60,8 @@ class _HomePageState extends State<HomePage> {
                   formatString: 'dd/MM/yyyy HH:mm',
                 );
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Picked date-time (ค.ศ.): ${dt ?? '-'}')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Picked date-time (ค.ศ.): ${dt ?? '-'}')));
               },
               child: const Text('Pick date-time (ค.ศ.)'),
             ),
@@ -70,8 +74,11 @@ class _HomePageState extends State<HomePage> {
                   locale: 'th_TH',
                 );
                 if (!context.mounted) return;
-                final text = range == null ? '-' : '${tbd.format(range.start, pattern: 'dmy')} → ${tbd.format(range.end, pattern: 'dmy')}';
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Picked range: $text')));
+                final text = range == null
+                    ? '-'
+                    : '${tbd.format(range.start, pattern: 'dmy')} → ${tbd.format(range.end, pattern: 'dmy')}';
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Picked range: $text')));
               },
               child: const Text('Pick range (พ.ศ.)'),
             ),
@@ -84,8 +91,12 @@ class _HomePageState extends State<HomePage> {
                   locale: 'th_TH',
                 );
                 if (!context.mounted) return;
-                final list = (multiple ?? const <DateTime>{}).map((d) => tbd.format(d, pattern: 'dd/MM/yyyy')).join(', ');
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Picked multiple: ${list.isEmpty ? '-' : list}')));
+                final list = (multiple ?? const <DateTime>{})
+                    .map((d) => tbd.format(d, pattern: 'dd/MM/yyyy'))
+                    .join(', ');
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content:
+                        Text('Picked multiple: ${list.isEmpty ? '-' : list}')));
               },
               child: const Text('Pick multiple (พ.ศ.)'),
             ),
@@ -99,8 +110,11 @@ class _HomePageState extends State<HomePage> {
                   locale: 'th_TH',
                 );
                 if (!context.mounted) return;
-                final label = d == null ? '-' : tbd.format(d, pattern: 'dmy', era: tbd.Era.be);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Picked fullscreen: $label')));
+                final label = d == null
+                    ? '-'
+                    : tbd.format(d, pattern: 'dmy', era: tbd.Era.be);
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Picked fullscreen: $label')));
               },
               child: const Text('Pick fullscreen (พ.ศ.)'),
             ),
@@ -114,7 +128,9 @@ class _HomePageState extends State<HomePage> {
                   formatString: 'dd MMM yyyy',
                 );
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Formatted (dialog returns string): ${s ?? '-'}')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(
+                        'Formatted (dialog returns string): ${s ?? '-'}')));
               },
               child: const Text('Pick date (formatted)'),
             ),

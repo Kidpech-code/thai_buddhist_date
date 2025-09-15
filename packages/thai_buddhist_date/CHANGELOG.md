@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.7 - 2025-09-15
+
+- Docs: Add screenshots and video demo to README.
+- Version bump to 0.2.7.
+
 ## 0.2.6 - Version bump
 
 - Bump package version to 0.2.6.

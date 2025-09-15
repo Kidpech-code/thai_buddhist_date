@@ -88,6 +88,19 @@
 				"$dart-json"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Flutter analyze pickers example",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-build"
+			],
+			"group": "build"
 		}
 	]
 }

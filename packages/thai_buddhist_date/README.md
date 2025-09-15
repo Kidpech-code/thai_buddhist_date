@@ -1,5 +1,21 @@
 # thai_buddhist_date
 
+## Screenshots & Demo
+
+<p align="center">
+  <img src="../../assets/images/thai_buddhist_date_photo_1.png" alt="Thai Buddhist Date Example 1" width="350" />
+  <img src="../../assets/images/thai_buddhist_date_photo_2.png" alt="Thai Buddhist Date Example 2" width="350" />
+</p>
+
+<details>
+<summary>🎬 Click to view video demo</summary>
+
+[![Thai Buddhist Date Video](../../assets/images/thai_buddhist_date_photo_1.png)](../../assets/videos/thai_buddhist_date_video.mp4)
+
+<a href="../../assets/videos/thai_buddhist_date_video.mp4">▶️ Watch full video (MP4)</a>
+
+</details>
+
 [![pub package](https://img.shields.io/pub/v/thai_buddhist_date.svg)](https://pub.dev/packages/thai_buddhist_date)
 [![CI](https://github.com/Kidpech-code/thai_buddhist_date/actions/workflows/ci.yml/badge.svg)](https://github.com/Kidpech-code/thai_buddhist_date/actions)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -24,7 +40,7 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.2.6
+  thai_buddhist_date: ^0.2.7
 ```
 
 Then run `dart pub get` or `flutter pub get`.

@@ -65,7 +65,9 @@ class ThaiDatePickerDialog extends StatefulWidget {
   final double? height;
 
   /// Custom header builder (receives prev/next callbacks).
-  final Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder;
+  final Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder;
 
   /// Custom day cell builder.
   final Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder;
@@ -123,9 +125,13 @@ class _ThaiDatePickerDialogState extends State<ThaiDatePickerDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop<DateTime?>(null), child: Text(widget.cancelText ?? 'ยกเลิก')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop<DateTime?>(null),
+            child: Text(widget.cancelText ?? 'ยกเลิก')),
         FilledButton(
-          onPressed: _selected == null ? null : () => Navigator.of(context).pop<DateTime?>(_selected),
+          onPressed: _selected == null
+              ? null
+              : () => Navigator.of(context).pop<DateTime?>(_selected),
           child: Text(widget.confirmText ?? 'ตกลง'),
         ),
       ],
@@ -170,7 +176,9 @@ class ThaiDateTimePickerDialog extends StatefulWidget {
   final String? cancelText;
   final double? width;
   final double? height;
-  final Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder;
+  final Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder;
   final Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder;
   final String formatString;
   final ShapeBorder? shape;
@@ -180,7 +188,8 @@ class ThaiDateTimePickerDialog extends StatefulWidget {
   final EdgeInsets? insetPadding;
 
   @override
-  State<ThaiDateTimePickerDialog> createState() => _ThaiDateTimePickerDialogState();
+  State<ThaiDateTimePickerDialog> createState() =>
+      _ThaiDateTimePickerDialogState();
 }
 
 /// A dialog that lets the user pick a start and end date (a range).
@@ -218,7 +227,9 @@ class ThaiDateRangePickerDialog extends StatefulWidget {
   final String? cancelText;
   final double? width;
   final double? height;
-  final Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder;
+  final Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder;
   final Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder;
   final ShapeBorder? shape;
   final EdgeInsetsGeometry? titlePadding;
@@ -227,7 +238,8 @@ class ThaiDateRangePickerDialog extends StatefulWidget {
   final EdgeInsets? insetPadding;
 
   @override
-  State<ThaiDateRangePickerDialog> createState() => _ThaiDateRangePickerDialogState();
+  State<ThaiDateRangePickerDialog> createState() =>
+      _ThaiDateRangePickerDialogState();
 }
 
 class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
@@ -257,19 +269,32 @@ class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
     if (calHeight < 320) calHeight = 320;
     if (calHeight > 520) calHeight = 520;
 
-    Widget dayBuilder(BuildContext ctx, DateTime date, bool selected, bool disabled) {
-      final inRange = _inRange(date) || (_start != null && _end == null && date == _start);
+    Widget dayBuilder(
+        BuildContext ctx, DateTime date, bool selected, bool disabled) {
+      final inRange =
+          _inRange(date) || (_start != null && _end == null && date == _start);
       final bg = disabled
           ? Theme.of(ctx).disabledColor.withValues(alpha: 0.1)
-          : (inRange ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18) : null);
-      final fg = disabled ? Theme.of(ctx).disabledColor : (date == _start || date == _end ? Theme.of(ctx).colorScheme.primary : null);
+          : (inRange
+              ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18)
+              : null);
+      final fg = disabled
+          ? Theme.of(ctx).disabledColor
+          : (date == _start || date == _end
+              ? Theme.of(ctx).colorScheme.primary
+              : null);
       return Container(
         alignment: Alignment.center,
         margin: const EdgeInsets.all(2),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
+        decoration:
+            BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
         child: Text(
           '${date.day}',
-          style: TextStyle(color: fg, fontWeight: (date == _start || date == _end) ? FontWeight.w700 : FontWeight.w500),
+          style: TextStyle(
+              color: fg,
+              fontWeight: (date == _start || date == _end)
+                  ? FontWeight.w700
+                  : FontWeight.w500),
         ),
       );
     }
@@ -316,10 +341,14 @@ class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop<DateTimeRange?>(null), child: Text(widget.cancelText ?? 'ยกเลิก')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop<DateTimeRange?>(null),
+            child: Text(widget.cancelText ?? 'ยกเลิก')),
         FilledButton(
-          onPressed:
-              (_start != null && _end != null) ? () => Navigator.of(context).pop<DateTimeRange?>(DateTimeRange(start: _start!, end: _end!)) : null,
+          onPressed: (_start != null && _end != null)
+              ? () => Navigator.of(context).pop<DateTimeRange?>(
+                  DateTimeRange(start: _start!, end: _end!))
+              : null,
           child: Text(widget.confirmText ?? 'ตกลง'),
         ),
       ],
@@ -344,7 +373,8 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
     final preview = _selected == null
         ? '-'
         : tbd.format(
-            DateTime(_selected!.year, _selected!.month, _selected!.day, _time.hour, _time.minute),
+            DateTime(_selected!.year, _selected!.month, _selected!.day,
+                _time.hour, _time.minute),
             format: widget.formatString,
             era: widget.era,
             locale: widget.locale,
@@ -371,7 +401,8 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
               child: BuddhistGregorianCalendar(
                 era: widget.era,
                 locale: widget.locale,
-                initialMonth: (_selected ?? widget.initialDateTime) ?? DateTime.now(),
+                initialMonth:
+                    (_selected ?? widget.initialDateTime) ?? DateTime.now(),
                 selectedDate: _selected,
                 firstDate: widget.firstDate,
                 lastDate: widget.lastDate,
@@ -383,11 +414,16 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: Text('ตัวอย่าง: $preview', overflow: TextOverflow.ellipsis, maxLines: 1, softWrap: false)),
+                Expanded(
+                    child: Text('ตัวอย่าง: $preview',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        softWrap: false)),
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: () async {
-                    final picked = await showTimePicker(context: context, initialTime: _time);
+                    final picked = await showTimePicker(
+                        context: context, initialTime: _time);
                     if (picked != null) setState(() => _time = picked);
                   },
                   child: const Text('เลือกเวลา'),
@@ -398,12 +434,15 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop<DateTime?>(null), child: Text(widget.cancelText ?? 'ยกเลิก')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop<DateTime?>(null),
+            child: Text(widget.cancelText ?? 'ยกเลิก')),
         FilledButton(
           onPressed: _selected == null
               ? null
               : () {
-                  final dt = DateTime(_selected!.year, _selected!.month, _selected!.day, _time.hour, _time.minute);
+                  final dt = DateTime(_selected!.year, _selected!.month,
+                      _selected!.day, _time.hour, _time.minute);
                   Navigator.of(context).pop<DateTime?>(dt);
                 },
           child: Text(widget.confirmText ?? 'ตกลง'),
@@ -430,7 +469,9 @@ Future<String?> showThaiDatePickerFormatted(
   String? cancelText,
   double? width,
   double? height,
-  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
   ShapeBorder? shape,
   EdgeInsetsGeometry? titlePadding,
@@ -479,7 +520,9 @@ Future<String?> showThaiDateTimePickerFormatted(
   String? cancelText,
   double? width,
   double? height,
-  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
 }) async {
   final dt = await showThaiDateTimePicker(
@@ -514,7 +557,9 @@ Future<DateTime?> showThaiDatePicker(
   String? cancelText,
   double? width,
   double? height,
-  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
   ShapeBorder? shape,
   EdgeInsetsGeometry? titlePadding,
@@ -559,7 +604,9 @@ Future<DateTime?> showThaiDateTimePicker(
   String? cancelText,
   double? width,
   double? height,
-  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
   ShapeBorder? shape,
   EdgeInsetsGeometry? titlePadding,
@@ -607,7 +654,9 @@ Future<DateTimeRange?> showThaiDateRangePicker(
   String? cancelText,
   double? width,
   double? height,
-  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
   ShapeBorder? shape,
   EdgeInsetsGeometry? titlePadding,
@@ -674,7 +723,9 @@ class ThaiMultiDatePickerDialog extends StatefulWidget {
   final String? cancelText;
   final double? width;
   final double? height;
-  final Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder;
+  final Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder;
   final Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder;
   final ShapeBorder? shape;
   final EdgeInsetsGeometry? titlePadding;
@@ -683,7 +734,8 @@ class ThaiMultiDatePickerDialog extends StatefulWidget {
   final EdgeInsets? insetPadding;
 
   @override
-  State<ThaiMultiDatePickerDialog> createState() => _ThaiMultiDatePickerDialogState();
+  State<ThaiMultiDatePickerDialog> createState() =>
+      _ThaiMultiDatePickerDialogState();
 }
 
 class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
@@ -691,12 +743,16 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
   @override
   void initState() {
     super.initState();
-    _selected = {...(widget.initialDates?.map((d) => DateTime(d.year, d.month, d.day)) ?? const <DateTime>{})};
+    _selected = {
+      ...(widget.initialDates?.map((d) => DateTime(d.year, d.month, d.day)) ??
+          const <DateTime>{})
+    };
   }
 
   bool _contains(DateTime d) {
     final x = DateTime(d.year, d.month, d.day);
-    return _selected.any((e) => e.year == x.year && e.month == x.month && e.day == x.day);
+    return _selected
+        .any((e) => e.year == x.year && e.month == x.month && e.day == x.day);
   }
 
   @override
@@ -707,18 +763,27 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
     if (calHeight < 320) calHeight = 320;
     if (calHeight > 520) calHeight = 520;
 
-    Widget dayBuilder(BuildContext ctx, DateTime date, bool selected, bool disabled) {
+    Widget dayBuilder(
+        BuildContext ctx, DateTime date, bool selected, bool disabled) {
       final picked = _contains(date);
-      final bg =
-          disabled ? Theme.of(ctx).disabledColor.withValues(alpha: 0.1) : (picked ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18) : null);
-      final fg = disabled ? Theme.of(ctx).disabledColor : (picked ? Theme.of(ctx).colorScheme.primary : null);
+      final bg = disabled
+          ? Theme.of(ctx).disabledColor.withValues(alpha: 0.1)
+          : (picked
+              ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18)
+              : null);
+      final fg = disabled
+          ? Theme.of(ctx).disabledColor
+          : (picked ? Theme.of(ctx).colorScheme.primary : null);
       return Container(
         alignment: Alignment.center,
         margin: const EdgeInsets.all(2),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
+        decoration:
+            BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
         child: Text(
           '${date.day}',
-          style: TextStyle(color: fg, fontWeight: picked ? FontWeight.w700 : FontWeight.w500),
+          style: TextStyle(
+              color: fg,
+              fontWeight: picked ? FontWeight.w700 : FontWeight.w500),
         ),
       );
     }
@@ -727,7 +792,8 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
       final x = DateTime(d.year, d.month, d.day);
       setState(() {
         if (_contains(x)) {
-          _selected.removeWhere((e) => e.year == x.year && e.month == x.month && e.day == x.day);
+          _selected.removeWhere(
+              (e) => e.year == x.year && e.month == x.month && e.day == x.day);
         } else {
           _selected.add(x);
         }
@@ -748,7 +814,8 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
           child: BuddhistGregorianCalendar(
             era: widget.era,
             locale: widget.locale,
-            initialMonth: (_selected.isNotEmpty ? _selected.first : null) ?? DateTime.now(),
+            initialMonth: (_selected.isNotEmpty ? _selected.first : null) ??
+                DateTime.now(),
             selectedDate: _selected.isNotEmpty ? _selected.first : null,
             firstDate: widget.firstDate,
             lastDate: widget.lastDate,
@@ -759,9 +826,13 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop<Set<DateTime>?>(null), child: Text(widget.cancelText ?? 'ยกเลิก')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop<Set<DateTime>?>(null),
+            child: Text(widget.cancelText ?? 'ยกเลิก')),
         FilledButton(
-          onPressed: _selected.isEmpty ? null : () => Navigator.of(context).pop<Set<DateTime>?>(_selected),
+          onPressed: _selected.isEmpty
+              ? null
+              : () => Navigator.of(context).pop<Set<DateTime>?>(_selected),
           child: Text(widget.confirmText ?? 'ตกลง'),
         ),
       ],
@@ -782,7 +853,9 @@ Future<Set<DateTime>?> showThaiMultiDatePicker(
   String? cancelText,
   double? width,
   double? height,
-  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
   ShapeBorder? shape,
   EdgeInsetsGeometry? titlePadding,
@@ -823,7 +896,9 @@ Future<DateTime?> showThaiDatePickerFullscreen(
   tbd.Era era = tbd.Era.be,
   String? locale = 'th_TH',
   String? title,
-  Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder,
+  Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
 }) {
   return Navigator.of(context).push<DateTime>(
@@ -860,7 +935,9 @@ class _FullscreenPickerPage extends StatefulWidget {
   final tbd.Era era;
   final String? locale;
   final String? title;
-  final Widget Function(BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)? headerBuilder;
+  final Widget Function(
+          BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
+      headerBuilder;
   final Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder;
 
   @override
@@ -884,7 +961,9 @@ class _FullscreenPickerPageState extends State<_FullscreenPickerPage> {
         title: Text(title),
         actions: [
           TextButton(
-            onPressed: _selected == null ? null : () => Navigator.of(context).pop<DateTime>(_selected),
+            onPressed: _selected == null
+                ? null
+                : () => Navigator.of(context).pop<DateTime>(_selected),
             child: const Text('ตกลง'),
           ),
           const SizedBox(width: 8),

@@ -73,14 +73,14 @@ packages:
       path: "../../thai_buddhist_date"
       relative: true
     source: path
-    version: "0.2.3"
+    version: "0.2.5"
   thai_buddhist_date_pickers:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.1.2"
+    version: "0.1.5"
   vector_math:
     dependency: transitive
     description:

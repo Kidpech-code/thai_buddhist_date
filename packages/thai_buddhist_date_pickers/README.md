@@ -1,5 +1,21 @@
 # thai_buddhist_date_pickers
 
+## Screenshots & Demo
+
+<p align="center">
+  <img src="../../assets/images/thai_buddhist_date_pickers_photo_1.png" alt="Thai Buddhist Date Pickers Example 1" width="350" />
+  <img src="../../assets/images/thai_buddhist_date_pickers_photo_2.png" alt="Thai Buddhist Date Pickers Example 2" width="350" />
+</p>
+
+<details>
+<summary>🎬 Click to view video demo</summary>
+
+[![Thai Buddhist Date Pickers Video](../../assets/images/thai_buddhist_date_pickers_photo_1.png)](../../assets/videos/thai_buddhist_date_pickers_video.mp4)
+
+<a href="../../assets/videos/thai_buddhist_date_pickers_video.mp4">▶️ Watch full video (MP4)</a>
+
+</details>
+
 [![pub package](https://img.shields.io/pub/v/thai_buddhist_date_pickers.svg)](https://pub.dev/packages/thai_buddhist_date_pickers)
 
 Flutter calendar and pickers for Thai Buddhist (พ.ศ.) and Gregorian (ค.ศ.), distributed separately from the core [`thai_buddhist_date`](https://pub.dev/packages/thai_buddhist_date) package.
@@ -13,8 +29,8 @@ Flutter calendar and pickers for Thai Buddhist (พ.ศ.) and Gregorian (ค.ศ
 
 ```yaml
 dependencies:
-  thai_buddhist_date_pickers: ^0.1.5
-  thai_buddhist_date: ^0.2.5
+  thai_buddhist_date_pickers: ^0.1.6
+  thai_buddhist_date: ^0.2.7
 ```
 
 ## Usage
