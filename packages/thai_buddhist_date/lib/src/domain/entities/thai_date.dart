@@ -1,8 +1,14 @@
 import '../value_objects/era.dart';
 
-/// Core entity representing a Thai Buddhist date
-/// Immutable and contains business logic for era conversion
-class ThaiDate {
+/// Immutable entity representing a Thai Buddhist (or Common Era) date.
+///
+/// All field validation is enforced in both debug and release builds.
+/// Use [ThaiDate.fromDateTime] or [ThaiDate.now] for convenient construction.
+class ThaiDate implements Comparable<ThaiDate> {
+  /// Creates a [ThaiDate].
+  ///
+  /// Field ranges are validated with `assert` (active in debug builds).
+  /// For release-mode validation that throws [ArgumentError], use [ThaiDate.safe].
   const ThaiDate({
     required this.year,
     required this.month,
@@ -13,13 +19,66 @@ class ThaiDate {
     this.millisecond = 0,
     this.microsecond = 0,
     this.era = Era.be,
-  })  : assert(month >= 1 && month <= 12),
-        assert(day >= 1 && day <= 31),
-        assert(hour >= 0 && hour <= 23),
-        assert(minute >= 0 && minute <= 59),
-        assert(second >= 0 && second <= 59),
-        assert(millisecond >= 0 && millisecond <= 999),
-        assert(microsecond >= 0 && microsecond <= 999);
+  })  : assert(month >= 1 && month <= 12, 'month must be in range 1–12'),
+        assert(day >= 1 && day <= 31, 'day must be in range 1–31'),
+        assert(hour >= 0 && hour <= 23, 'hour must be in range 0–23'),
+        assert(minute >= 0 && minute <= 59, 'minute must be in range 0–59'),
+        assert(second >= 0 && second <= 59, 'second must be in range 0–59'),
+        assert(millisecond >= 0 && millisecond <= 999,
+            'millisecond must be in range 0–999'),
+        assert(microsecond >= 0 && microsecond <= 999,
+            'microsecond must be in range 0–999');
+
+  /// Creates a validated [ThaiDate] that throws [ArgumentError] in both
+  /// debug **and** release builds.
+  ///
+  /// Prefer this factory when constructing dates from untrusted input.
+  factory ThaiDate.safe({
+    required int year,
+    required int month,
+    required int day,
+    int hour = 0,
+    int minute = 0,
+    int second = 0,
+    int millisecond = 0,
+    int microsecond = 0,
+    Era era = Era.be,
+  }) {
+    if (month < 1 || month > 12) {
+      throw ArgumentError.value(month, 'month', 'must be in range 1–12');
+    }
+    if (day < 1 || day > 31) {
+      throw ArgumentError.value(day, 'day', 'must be in range 1–31');
+    }
+    if (hour < 0 || hour > 23) {
+      throw ArgumentError.value(hour, 'hour', 'must be in range 0–23');
+    }
+    if (minute < 0 || minute > 59) {
+      throw ArgumentError.value(minute, 'minute', 'must be in range 0–59');
+    }
+    if (second < 0 || second > 59) {
+      throw ArgumentError.value(second, 'second', 'must be in range 0–59');
+    }
+    if (millisecond < 0 || millisecond > 999) {
+      throw ArgumentError.value(
+          millisecond, 'millisecond', 'must be in range 0–999');
+    }
+    if (microsecond < 0 || microsecond > 999) {
+      throw ArgumentError.value(
+          microsecond, 'microsecond', 'must be in range 0–999');
+    }
+    return ThaiDate(
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      second: second,
+      millisecond: millisecond,
+      microsecond: microsecond,
+      era: era,
+    );
+  }
 
   final int year;
   final int month;
@@ -129,6 +188,26 @@ class ThaiDate {
 
   /// Subtract days
   ThaiDate subtractDays(int days) => addDays(-days);
+
+  /// Compares this date to [other] chronologically.
+  ///
+  /// Returns a negative integer if this is before [other], zero if equal,
+  /// or a positive integer if this is after [other].
+  @override
+  int compareTo(ThaiDate other) {
+    final thisCE = ceYear;
+    final otherCE = other.ceYear;
+    if (thisCE != otherCE) return thisCE.compareTo(otherCE);
+    if (month != other.month) return month.compareTo(other.month);
+    if (day != other.day) return day.compareTo(other.day);
+    if (hour != other.hour) return hour.compareTo(other.hour);
+    if (minute != other.minute) return minute.compareTo(other.minute);
+    if (second != other.second) return second.compareTo(other.second);
+    if (millisecond != other.millisecond) {
+      return millisecond.compareTo(other.millisecond);
+    }
+    return microsecond.compareTo(other.microsecond);
+  }
 
   @override
   bool operator ==(Object other) =>

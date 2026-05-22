@@ -12,7 +12,8 @@ import 'package:intl/intl.dart';
 import 'src/domain/entities/thai_date.dart';
 import 'src/domain/value_objects/era.dart';
 import 'src/domain/value_objects/locale_config.dart';
-import 'src/presentation/thai_date_service.dart';
+import 'src/domain/value_objects/thai_date_pattern.dart';
+import 'src/application/services/thai_date_service.dart';
 
 // Core Clean Architecture Exports
 // ================================
@@ -25,14 +26,12 @@ export 'src/domain/value_objects/thai_date_config.dart';
 export 'src/domain/value_objects/thai_date_pattern.dart';
 
 // Application Layer - Use Cases & Services
+export 'src/application/services/thai_date_service.dart';
 export 'src/application/services/cache_service.dart';
 export 'src/application/use_cases/format_thai_date_use_case.dart';
 export 'src/application/use_cases/parse_thai_date_use_case.dart';
 
 // Presentation Layer - High-Level API
-export 'src/presentation/thai_date_service.dart';
-
-// Extension Methods for Ergonomic Usage
 export 'src/presentation/extensions/datetime_extensions.dart';
 export 'src/presentation/extensions/string_extensions.dart';
 export 'src/presentation/extensions/int_extensions.dart';
@@ -51,9 +50,9 @@ ThaiDateService get thaiDateService => ThaiDateService();
 const Era buddhistEra = Era.be;
 const Era commonEra = Era.ce;
 
-// Common locales
-const String thaiLocale = 'th-TH';
-const String englishLocale = 'en-US';
+// Common locales (underscore format, consistent with intl package)
+const String thaiLocale = 'th_TH';
+const String englishLocale = 'en_US';
 
 // Version information
 const String version = '2.0.0';
@@ -233,7 +232,7 @@ class ThaiDateSettings {
 }
 
 /// Parts for building custom Thai date strings (legacy helper).
-enum ThaiDatePart { day, month, year }
+// Uses ThaiDatePart from the domain value_objects — no duplicate definition here.
 
 /// Legacy ThaiCalendar API shim that maps to ThaiDateService.
 class ThaiCalendar {

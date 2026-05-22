@@ -2,7 +2,7 @@ import '../services/cache_service.dart';
 import '../../domain/entities/thai_date.dart';
 import '../../domain/value_objects/thai_date_config.dart';
 import '../../domain/value_objects/thai_date_pattern.dart';
-import '../../domain/repositories/date_repository.dart';
+import '../../domain/repositories/i_date_formatter_repository.dart';
 
 /// Use case for formatting Thai dates with caching for performance
 class FormatThaiDateUseCase {

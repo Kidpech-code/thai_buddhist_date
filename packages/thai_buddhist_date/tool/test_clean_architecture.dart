@@ -3,7 +3,7 @@
 //
 // Simple test to verify the Clean Architecture implementation works
 
-import 'lib/thai_buddhist_date.dart';
+import 'package:thai_buddhist_date/thai_buddhist_date.dart';
 
 void main() async {
   print('=== Testing Clean Architecture Thai Buddhist Date ===');

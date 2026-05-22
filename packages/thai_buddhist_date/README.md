@@ -40,10 +40,61 @@ Add to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.2.7
+  thai_buddhist_date: ^0.3.0
 ```
 
 Then run `dart pub get` or `flutter pub get`.
+
+---
+
+## ⬆️ Upgrading from 0.2.x to 0.3.0
+
+> **สิ่งที่ยังใช้ได้เหมือนเดิม — ไม่ต้องแก้โค้ดอะไร**
+>
+> ✅ `const ThaiDate(...)` ยังคง `const` ได้เหมือนเดิม  
+> ✅ ทุก API ของ `ThaiDateService`, `ThaiCalendar`, `format()`, `parse()` ไม่เปลี่ยน  
+> ✅ `CacheService` ยังคง export อยู่
+
+### สิ่งที่เปลี่ยน — ตรวจสอบ 2 จุดนี้
+
+#### 1. `int.toCE` ตอนนี้คืนค่าถูกต้อง
+
+```dart
+// เดิม (0.2.7) — bug: no-op คืนค่าเดิม
+2568.toCE; // 2568  ← ผิด
+
+// ใหม่ (0.3.0) — ถูกต้อง
+2568.toCE; // 2025  ✓
+```
+
+**ต้องทำอะไร:**  
+ถ้าเคยรู้ว่า `toCE` bug แล้วบวกลบ offset เองเพื่อแก้ → ลบ workaround นั้นออก
+
+#### 2. Locale constants ใช้ underscore แทน hyphen
+
+```dart
+// เดิม (0.2.7)
+thaiLocale;    // 'th-TH'
+englishLocale; // 'en-US'
+
+// ใหม่ (0.3.0)
+thaiLocale;    // 'th_TH'  ✓
+englishLocale; // 'en_US'  ✓
+```
+
+**ต้องทำอะไร:**  
+ถ้า hardcode `'th-TH'` หรือ `'en-US'` ใน string comparison → เปลี่ยนเป็น underscore  
+(ค่าเดิม `'th-TH'` ทำให้ locale init ไม่เคยทำงาน เพราะ `intl` ต้องการ underscore)
+
+### สิ่งที่เพิ่มใหม่ (additive)
+
+| สิ่งใหม่                           | คืออะไร                                                        |
+| ---------------------------------- | -------------------------------------------------------------- |
+| `ThaiDate.safe({...})`             | factory ที่ validate และ throw `ArgumentError` ใน release mode |
+| `ThaiDate` implements `Comparable` | sort รายการวันที่ได้โดยตรง                                     |
+| `CacheService.stats.hitRate`       | ค่า hit rate จริง (เดิมคืน `0.0` ตลอด)                         |
+
+---
 
 ## Quick start
 

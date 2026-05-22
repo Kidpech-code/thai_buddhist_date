@@ -5,8 +5,10 @@ extension IntThaiExtensions on int {
   /// Convert CE year to BE year
   int get toBE => Era.be.fromCE(this);
 
-  /// Convert BE year to CE year
-  int get toCE => Era.ce.fromCE(this);
+  /// Convert BE year to CE year.
+  ///
+  /// Example: `2568.toCE` → `2025`
+  int get toCE => Era.be.toCE(this);
 
   /// Create year in BE era
   int get beYear => Era.be.fromCE(this);

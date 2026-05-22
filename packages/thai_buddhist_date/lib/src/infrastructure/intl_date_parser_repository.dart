@@ -4,47 +4,25 @@ import '../domain/entities/thai_date.dart';
 import '../domain/value_objects/thai_date_config.dart';
 import '../domain/value_objects/thai_date_pattern.dart';
 import '../domain/value_objects/era.dart';
-import '../domain/repositories/date_repository.dart';
+import '../domain/repositories/i_date_parser_repository.dart';
 
-/// High-performance implementation of date parser repository
-/// Includes intelligent era detection and multiple pattern fallbacks
+/// [intl]-based implementation of [IDateParserRepository].
+///
+/// The DateFormat instance cache is instance-level so isolated instances
+/// (e.g. in tests) do not share state.
 class IntlDateParserRepository implements IDateParserRepository {
-  // Cache of DateFormat instances for performance
-  static final Map<String, DateFormat> _formatCache = {};
+  final Map<String, DateFormat> _formatCache = {};
 
   @override
   ThaiDate? parse(
       String input, ThaiDatePattern pattern, ThaiDateConfig config) {
     try {
       final dateFormat = _getOrCreateFormat(pattern.pattern, config.locale);
-      final parsedDateTimeRaw = dateFormat.parseStrict(input);
-
-      // Detect era based on year value or config
+      final raw = dateFormat.parseStrict(input);
+      final normalised = _normaliseToCE(raw);
       final detectedEra = _detectEra(input, config.era);
-
-      // Normalize parsed DateTime to CE if the input looks like BE
-      final parsedLooksBE = Era.be.isLikelyYear(parsedDateTimeRaw.year);
-      final parsedDateTime = parsedLooksBE
-          ? DateTime(
-              Era.be.toCE(parsedDateTimeRaw.year),
-              parsedDateTimeRaw.month,
-              parsedDateTimeRaw.day,
-              parsedDateTimeRaw.hour,
-              parsedDateTimeRaw.minute,
-              parsedDateTimeRaw.second,
-              parsedDateTimeRaw.millisecond,
-              parsedDateTimeRaw.microsecond,
-            )
-          : parsedDateTimeRaw;
-
-      // Create ThaiDate with detected era (from CE DateTime)
-      var result = ThaiDate.fromDateTime(parsedDateTime, era: detectedEra);
-
-      // Convert to config era if needed
-      if (result.era != config.era) {
-        result = result.toEra(config.era);
-      }
-
+      var result = ThaiDate.fromDateTime(normalised, era: detectedEra);
+      if (result.era != config.era) result = result.toEra(config.era);
       return result;
     } catch (_) {
       return null;
@@ -56,27 +34,9 @@ class IntlDateParserRepository implements IDateParserRepository {
       String input, ThaiDatePattern pattern, ThaiDateConfig config) {
     try {
       final dateFormat = _getOrCreateFormat(pattern.pattern, config.locale);
-      final parsedDateTimeRaw = dateFormat.parseStrict(input);
-
-      // Normalize to CE if parsed year looks like BE
-      final parsedLooksBE = Era.be.isLikelyYear(parsedDateTimeRaw.year);
-      final parsedDateTime = parsedLooksBE
-          ? DateTime(
-              Era.be.toCE(parsedDateTimeRaw.year),
-              parsedDateTimeRaw.month,
-              parsedDateTimeRaw.day,
-              parsedDateTimeRaw.hour,
-              parsedDateTimeRaw.minute,
-              parsedDateTimeRaw.second,
-              parsedDateTimeRaw.millisecond,
-              parsedDateTimeRaw.microsecond,
-            )
-          : parsedDateTimeRaw;
-
-      // Create ThaiDate with explicit era from config (from CE DateTime)
-      var result = ThaiDate.fromDateTime(parsedDateTime, era: config.era);
-
-      return result;
+      final raw = dateFormat.parseStrict(input);
+      final normalised = _normaliseToCE(raw);
+      return ThaiDate.fromDateTime(normalised, era: config.era);
     } catch (_) {
       return null;
     }
@@ -88,22 +48,30 @@ class IntlDateParserRepository implements IDateParserRepository {
   }
 
   Era _detectEra(String input, Era defaultEra) {
-    // Extract year from input using regex
     final yearMatch = RegExp(r'(\d{4})').firstMatch(input);
     if (yearMatch != null) {
       final year = int.tryParse(yearMatch.group(1)!);
       if (year != null) {
-        // Use era detection logic
-        if (Era.be.isLikelyYear(year)) {
-          return Era.be;
-        } else if (Era.ce.isLikelyYear(year)) {
-          return Era.ce;
-        }
+        if (Era.be.isLikelyYear(year)) return Era.be;
+        if (Era.ce.isLikelyYear(year)) return Era.ce;
       }
     }
-
-    // Fallback to default era
     return defaultEra;
+  }
+
+  /// Converts a [DateTime] whose year may be a BE year into a CE [DateTime].
+  DateTime _normaliseToCE(DateTime raw) {
+    if (!Era.be.isLikelyYear(raw.year)) return raw;
+    return DateTime(
+      Era.be.toCE(raw.year),
+      raw.month,
+      raw.day,
+      raw.hour,
+      raw.minute,
+      raw.second,
+      raw.millisecond,
+      raw.microsecond,
+    );
   }
 
   DateFormat _getOrCreateFormat(String pattern, String locale) {

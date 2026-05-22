@@ -1,27 +1,35 @@
-/// High-performance in-memory cache service
-/// Uses LRU (Least Recently Used) eviction policy for memory efficiency
+import 'dart:collection';
+
+/// High-performance in-memory cache with LRU eviction and TTL expiry.
 class CacheService {
   CacheService({this.maxSize = 1000, this.ttlSeconds = 3600});
 
   final int maxSize;
   final int ttlSeconds;
   final Map<String, _CacheEntry> _cache = <String, _CacheEntry>{};
-  final Map<String, String> _accessOrder = <String, String>{};
 
-  /// Get cached value
+  /// Insertion-ordered set used for O(1) LRU tracking.
+  final LinkedHashSet<String> _accessOrder = LinkedHashSet<String>();
+
+  int _hits = 0;
+  int _misses = 0;
+
+  /// Returns the cached value for [key], or `null` on a miss or expiry.
   T? get<T>(String key) {
     final entry = _cache[key];
-    if (entry == null) return null;
-
-    // Check TTL
-    if (_isExpired(entry)) {
-      remove(key);
+    if (entry == null) {
+      _misses++;
       return null;
     }
 
-    // Update access order for LRU
-    _updateAccessOrder(key);
+    if (_isExpired(entry)) {
+      remove(key);
+      _misses++;
+      return null;
+    }
 
+    _hits++;
+    _updateAccessOrder(key);
     return entry.value as T?;
   }
 
@@ -44,25 +52,28 @@ class CacheService {
     _updateAccessOrder(key);
   }
 
-  /// Remove specific entry
+  /// Removes the entry for [key].
   void remove(String key) {
     _cache.remove(key);
     _accessOrder.remove(key);
   }
 
-  /// Clear all entries
+  /// Clears all entries and resets hit/miss counters.
   void clear() {
     _cache.clear();
     _accessOrder.clear();
+    _hits = 0;
+    _misses = 0;
   }
 
-  /// Get cache statistics
+  /// Returns a snapshot of cache statistics.
   CacheStats get stats {
     _cleanupExpired();
+    final total = _hits + _misses;
     return CacheStats(
       size: _cache.length,
       maxSize: maxSize,
-      hitRate: 0.0, // Could be implemented with counters
+      hitRate: total == 0 ? 0.0 : _hits / total,
     );
   }
 
@@ -73,12 +84,12 @@ class CacheService {
 
   void _updateAccessOrder(String key) {
     _accessOrder.remove(key);
-    _accessOrder[key] = key; // Move to end (most recent)
+    _accessOrder.add(key); // Re-insert at end (most recently used)
   }
 
   void _evictLeastRecentlyUsed() {
     if (_accessOrder.isNotEmpty) {
-      final lruKey = _accessOrder.keys.first;
+      final lruKey = _accessOrder.first;
       remove(lruKey);
     }
   }

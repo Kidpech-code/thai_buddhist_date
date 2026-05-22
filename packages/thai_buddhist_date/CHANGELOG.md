@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.3.0 - 2026-05-22
+
+### Clean Architecture & Production-grade Refactoring
+
+#### Bug fixes (may affect existing code)
+
+- **`int.toCE` now returns the correct CE year.**  
+  Previously `2568.toCE` returned `2568` (no-op bug). Now it correctly returns `2025`.  
+  If you added a manual `- 543` workaround because you knew it was broken, remove that workaround.
+
+- **Locale constants use underscore format** (`th_TH`, `en_US`) consistent with the `intl` package.  
+  The old hyphen values (`th-TH`, `en-US`) were silently rejected by `SupportedLocales.isSupported()`, so locale initialization never worked when using these constants.  
+  If you hardcoded `'th-TH'` in a string comparison, change it to `'th_TH'`.
+
+#### New features
+
+- `ThaiDate.safe({...})` factory — validates all fields and throws `ArgumentError` in both debug and release builds. The main `ThaiDate({...})` constructor remains `const` (backward compatible).
+- `ThaiDate` now implements `Comparable<ThaiDate>` — supports `list.sort()` and direct `compareTo` comparisons.
+
+#### Internal improvements (no API change)
+
+- `CacheService` hit-rate tracking is now real (was always `0.0`).
+- `CacheService` LRU uses `LinkedHashSet` instead of `Map<String,String>` (less memory waste).
+- `ThaiDateService` moved to the Application layer with proper dependency injection.
+- `IDateFormatterRepository` and `IDateParserRepository` split into separate files (SRP).
+- Infrastructure repositories use instance-level state (was `static` — broke test isolation).
+- Parser `_normaliseToCE` extracted as a shared helper (removed ~15 lines of duplication).
+- Stale `.backup` file removed from `lib/`.
+- `performance_comparison.dart` and `test_clean_architecture.dart` moved to `tool/`.
+- Smoke test replaced with 6 meaningful tests.
+
+---
+
 ## 0.2.7 - 2025-09-15
 
 - Docs: Add screenshots and video demo to README.

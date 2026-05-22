@@ -3,7 +3,7 @@ import '../../domain/entities/thai_date.dart';
 import '../../domain/value_objects/thai_date_config.dart';
 import '../../domain/value_objects/thai_date_pattern.dart';
 import '../../domain/value_objects/era.dart';
-import '../../domain/repositories/date_repository.dart';
+import '../../domain/repositories/i_date_parser_repository.dart';
 
 /// Use case for parsing Thai date strings with intelligent era detection
 class ParseThaiDateUseCase {

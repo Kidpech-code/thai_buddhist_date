@@ -4,13 +4,15 @@ import 'package:intl/date_symbol_data_local.dart';
 import '../domain/entities/thai_date.dart';
 import '../domain/value_objects/thai_date_config.dart';
 import '../domain/value_objects/thai_date_pattern.dart';
-import '../domain/repositories/date_repository.dart';
+import '../domain/repositories/i_date_formatter_repository.dart';
 
-/// High-performance implementation of date formatter repository using intl package
-/// Includes token-aware formatting and locale initialization caching
+/// [intl]-based implementation of [IDateFormatterRepository].
+///
+/// Locale initialisation state is instance-level so that isolated instances
+/// (e.g. in tests) do not share state.
 class IntlDateFormatterRepository implements IDateFormatterRepository {
-  static final Map<String, Future<void>> _localeInitFutures = {};
-  static final Set<String> _initializedLocales = {};
+  final Map<String, Future<void>> _localeInitFutures = {};
+  final Set<String> _initializedLocales = {};
 
   @override
   Future<String> format(

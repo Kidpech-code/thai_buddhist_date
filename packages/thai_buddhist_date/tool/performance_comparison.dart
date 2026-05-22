@@ -3,7 +3,7 @@
 //
 // Performance comparison between Clean Architecture and legacy implementation
 
-import 'lib/thai_buddhist_date.dart';
+import 'package:thai_buddhist_date/thai_buddhist_date.dart';
 
 void main() async {
   print('=== Performance Comparison: Clean Architecture vs Legacy ===\n');

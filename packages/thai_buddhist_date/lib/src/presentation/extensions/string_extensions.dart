@@ -1,6 +1,6 @@
 import '../../domain/entities/thai_date.dart';
 import '../../domain/value_objects/era.dart';
-import '../thai_date_service.dart';
+import '../../application/services/thai_date_service.dart';
 
 /// Extension methods on String for Thai Buddhist date operations
 extension StringThaiExtensions on String {

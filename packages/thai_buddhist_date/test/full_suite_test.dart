@@ -13,6 +13,10 @@ import 'package:thai_buddhist_date/thai_buddhist_date.dart'
         parseThaiDate;
 
 void main() {
+  setUpAll(() async {
+    // Initialise Thai locale data required by localised format patterns.
+    await ThaiDateService().initializeLocale('th_TH');
+  });
   group('Era', () {
     test('BE<->CE', () {
       expect(Era.be.toCE(2567), 2024);
