@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 - 2026-05-22
+
+- Require `thai_buddhist_date: ^0.3.0` (Clean Architecture edition).
+- No API changes — all existing widget and function signatures are unchanged.
+- Users on `thai_buddhist_date ^0.2.x` should stay on `thai_buddhist_date_pickers ^0.1.6`.
+- The `int.toCE` bug fix and underscore-format locale constants (`th_TH`) from core 0.3.0 apply automatically; no changes needed in picker call sites.
+
 ## 0.1.6 - 2025-09-15
 
 - Docs: Add screenshots and video demo to README.

@@ -29,8 +29,8 @@ Flutter calendar and pickers for Thai Buddhist (พ.ศ.) and Gregorian (ค.ศ
 
 ```yaml
 dependencies:
-  thai_buddhist_date_pickers: ^0.1.6
-  thai_buddhist_date: ^0.2.7
+  thai_buddhist_date_pickers: ^0.2.0
+  thai_buddhist_date: ^0.3.0
 ```
 
 ## Usage
