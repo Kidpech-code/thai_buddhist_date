@@ -1,0 +1,49 @@
+name: Feature request
+description: Propose a compatible improvement to a package or the demo.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Proposed scope
+      options:
+        - thai_buddhist_date
+        - thai_buddhist_date_pickers
+        - Root demo app
+        - Documentation or release tooling
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user need rather than only the proposed API.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Include example usage when proposing a public API.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility considerations
+      description: Note API, behavior, locale, accessibility, or migration impact.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and package documentation.
+          required: true
+        - label: I can explain how this remains compatible or why a breaking change is justified.
+          required: true

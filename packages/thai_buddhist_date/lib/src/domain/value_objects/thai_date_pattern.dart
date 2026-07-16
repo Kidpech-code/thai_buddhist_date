@@ -88,14 +88,14 @@ class ThaiDatePattern {
       other is ThaiDatePattern &&
           runtimeType == other.runtimeType &&
           pattern == other.pattern &&
-          const ListEquality().equals(parts, other.parts) &&
+          const ListEquality<ThaiDatePart>().equals(parts, other.parts) &&
           separator == other.separator &&
           monthShort == other.monthShort;
 
   @override
   int get hashCode => Object.hash(
         pattern,
-        const ListEquality().hash(parts),
+        const ListEquality<ThaiDatePart>().hash(parts),
         separator,
         monthShort,
       );

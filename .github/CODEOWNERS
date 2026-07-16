@@ -1,0 +1,8 @@
+# Default maintainer review.
+* @Kidpech-code
+
+# High-risk governance and release automation.
+/.github/workflows/ @Kidpech-code
+/docs/ENGINEERING_POLICY.md @Kidpech-code
+/SECURITY.md @Kidpech-code
+/RELEASING.md @Kidpech-code

@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  demo:
+    name: Root demo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up Flutter
+        uses: flutter-actions/setup-flutter@d4e97a6e7467ef062618c9af927f90bc9651b876
+        with:
+          channel: stable
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+      - name: Test
+        run: flutter test
+
+  core:
+    name: Core Dart package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/thai_buddhist_date
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up Flutter and Dart
+        uses: flutter-actions/setup-flutter@d4e97a6e7467ef062618c9af927f90bc9651b876
+        with:
+          channel: stable
+      - name: Install dependencies
+        run: dart pub get
+      - name: Install Flutter example dependencies
+        run: flutter pub get
+        working-directory: packages/thai_buddhist_date/example/flutter_app
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test tool example
+      - name: Analyze
+        run: dart analyze --fatal-infos
+      - name: Analyze Flutter example
+        run: flutter analyze --fatal-infos
+        working-directory: packages/thai_buddhist_date/example/flutter_app
+      - name: Test
+        run: dart test
+      - name: Validate package
+        run: dart pub publish --dry-run
+
+  pickers:
+    name: Flutter picker package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/thai_buddhist_date_pickers
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up Flutter
+        uses: flutter-actions/setup-flutter@d4e97a6e7467ef062618c9af927f90bc9651b876
+        with:
+          channel: stable
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test example/lib
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+      - name: Test
+        run: flutter test
+      - name: Validate package
+        run: flutter pub publish --dry-run
