@@ -63,6 +63,7 @@ class ThaiDateService {
     _parseUseCase = ParseThaiDateUseCase(
       parserRepository: _parserRepository,
       cacheService: _cacheService,
+      formatUseCase: _formatUseCase,
     );
   }
 
@@ -88,8 +89,10 @@ class ThaiDateService {
 
   /// Replaces the active configuration.
   void updateConfig(ThaiDateConfig newConfig) {
-    if (newConfig.isValid) {
+    if (newConfig.isValid && newConfig != _config) {
       _config = newConfig;
+      _syncLocaleFallbacks();
+      clearCache();
     }
   }
 
@@ -100,19 +103,26 @@ class ThaiDateService {
 
   /// Sets the default locale.
   ///
-  /// No-op when [locale] is not in [SupportedLocales.all].
+  /// No-op when [locale] is empty.
   void setLocale(String locale) {
-    if (SupportedLocales.isSupported(locale)) {
-      _config = _config.copyWith(locale: locale);
+    final normalized = locale.trim();
+    if (normalized.isNotEmpty && normalized != _config.locale) {
+      _config = _config.copyWith(locale: normalized);
+      _syncLocaleFallbacks();
+      clearCache();
     }
   }
 
   /// Sets the default language (also updates the locale accordingly).
   void setLanguage(ThaiLanguage language) {
-    _config = _config.copyWith(
+    final newConfig = _config.copyWith(
       language: language,
       locale: language.localeCode,
     );
+    if (newConfig == _config) return;
+    _config = newConfig;
+    _syncLocaleFallbacks();
+    clearCache();
   }
 
   /// Formats [date] with an optional [pattern], [era] and [locale] override.
@@ -189,6 +199,39 @@ class ThaiDateService {
     );
   }
 
+  /// Parses [input] with [fromPattern] and formats it with [toPattern].
+  ///
+  /// Returns `null` when the input cannot be parsed. When [inputEra] is set,
+  /// the input year is interpreted explicitly in that era.
+  Future<String?> convert(
+    String input, {
+    required String fromPattern,
+    required String toPattern,
+    Era? inputEra,
+    Era? toEra,
+    String? locale,
+  }) async {
+    final parsed = inputEra == null
+        ? parse(input, pattern: fromPattern, locale: locale)
+        : parseWithEra(
+            input,
+            pattern: fromPattern,
+            era: inputEra,
+            locale: locale,
+          );
+    if (parsed == null) return null;
+
+    final effectiveConfig = _buildEffectiveConfig(
+      era: toEra,
+      locale: locale,
+    );
+    return _formatUseCase.execute(
+      date: parsed,
+      patternKey: toPattern,
+      config: effectiveConfig,
+    );
+  }
+
   /// Returns `true` if [input] can be parsed as a valid date.
   bool isValid(String input, {String? pattern}) {
     return _parseUseCase.isValid(
@@ -213,14 +256,27 @@ class ThaiDateService {
   /// Resets configuration to defaults and clears the cache.
   void reset() {
     _config = ThaiDateConfig.defaultConfig;
+    _syncLocaleFallbacks();
     clearCache();
+  }
+
+  void _syncLocaleFallbacks() {
+    final formatterRepository = _formatterRepository;
+    if (formatterRepository is IntlDateFormatterRepository) {
+      formatterRepository.setFallbackLocale(_config.locale);
+    }
+    final parserRepository = _parserRepository;
+    if (parserRepository is IntlDateParserRepository) {
+      parserRepository.setFallbackLocale(_config.locale);
+    }
   }
 
   ThaiDateConfig _buildEffectiveConfig({Era? era, String? locale}) {
     var effectiveConfig = _config;
     if (era != null) effectiveConfig = effectiveConfig.copyWith(era: era);
-    if (locale != null && SupportedLocales.isSupported(locale)) {
-      effectiveConfig = effectiveConfig.copyWith(locale: locale);
+    final normalizedLocale = locale?.trim();
+    if (normalizedLocale != null && normalizedLocale.isNotEmpty) {
+      effectiveConfig = effectiveConfig.copyWith(locale: normalizedLocale);
     }
     return effectiveConfig;
   }

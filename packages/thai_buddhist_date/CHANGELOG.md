@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.4.0 - 2026-07-17
+
+- Reject impossible month/day combinations in `ThaiDate.safe` and report them
+  through `ThaiDate.isValid`, including Buddhist Era leap-year conversion.
+- Fix `double.toCE` so it matches the integer year conversion.
+- Accept locale identifiers supported by `intl`, with unavailable locale
+  requests falling back to the service's configured locale.
+- Export formatter/parser repository interfaces so `ThaiDateService.create`
+  can be used from the public package entry point.
+- Add locale-aware async `ThaiDateService.convert` for parse → format flows.
+- Make the existing `shortDate` and `longDate` preset names token-safe.
+- Respect the caller-provided BE/CE era for explicit-era parsing instead of
+  applying automatic year heuristics.
+- Clear cached format results when the configured locale or locale fallback
+  changes, preventing stale language output.
+- Deprecate `architectureType`, `ListEquality`, and
+  `ParseThaiDateUseCase.convert`; the symbols remain available for
+  compatibility and point to their replacements, with removal planned for
+  `0.5.0`.
+- Stop tracking this library package's `pubspec.lock`; application/example
+  lockfiles remain tracked and are refreshed with Flutter 3.44.2.
+
 ## 0.3.0 - 2026-05-22
 
 ### Clean Architecture & Production-grade Refactoring

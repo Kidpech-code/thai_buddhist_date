@@ -36,17 +36,18 @@ git switch main
 git pull --ff-only
 
 # Core example
-git tag -a thai_buddhist_date-v0.3.1 -m "Release thai_buddhist_date 0.3.1"
-git push origin thai_buddhist_date-v0.3.1
+git tag -a thai_buddhist_date-v0.4.0 -m "Release thai_buddhist_date 0.4.0"
+git push origin thai_buddhist_date-v0.4.0
 
 # Picker example
-git tag -a thai_buddhist_date_pickers-v0.2.1 -m "Release thai_buddhist_date_pickers 0.2.1"
-git push origin thai_buddhist_date_pickers-v0.2.1
+git tag -a thai_buddhist_date_pickers-v0.3.0 -m "Release thai_buddhist_date_pickers 0.3.0"
+git push origin thai_buddhist_date_pickers-v0.3.0
 ```
 
-The tag starts the OIDC workflow. Approve the protected `pub.dev` environment,
-then verify the published version, README, changelog, and API documentation on
-pub.dev.
+The tag starts the OIDC workflow. Its preflight rejects a tag whose version does
+not match the selected package's `pubspec.yaml`. Approve the protected `pub.dev`
+environment, then verify the published version, README, changelog, and API
+documentation on pub.dev.
 
 Never force-move a release tag. If a tag is wrong and publishing has not begun,
 stop and investigate before deleting it. If a version was already published,

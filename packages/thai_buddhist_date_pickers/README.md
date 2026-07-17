@@ -1,81 +1,54 @@
 # thai_buddhist_date_pickers
 
-## Screenshots & Demo
-
-<p align="center">
-  <img src="../../assets/images/thai_buddhist_date_pickers_photo_1.png" alt="Thai Buddhist Date Pickers Example 1" width="350" />
-  <img src="../../assets/images/thai_buddhist_date_pickers_photo_2.png" alt="Thai Buddhist Date Pickers Example 2" width="350" />
-</p>
-
-<details>
-<summary>🎬 Click to view video demo</summary>
-
-<video src="../../assets/videos/thai_buddhist_date_pickers_video.mp4" controls autoplay loop muted playsinline style="max-width:100%;width:600px;" poster="../../assets/images/thai_buddhist_date_pickers_photo_1.png"></video>
-
-<a href="../../assets/videos/thai_buddhist_date_pickers_video.mp4">▶️ Watch full video (MP4)</a>
-
-</details>
-
 [![pub package](https://img.shields.io/pub/v/thai_buddhist_date_pickers.svg)](https://pub.dev/packages/thai_buddhist_date_pickers)
+[![CI](https://github.com/Kidpech-code/thai_buddhist_date/actions/workflows/ci.yml/badge.svg)](https://github.com/Kidpech-code/thai_buddhist_date/actions/workflows/ci.yml)
 
-Flutter calendar and pickers for Thai Buddhist (พ.ศ.) and Gregorian (ค.ศ.), distributed separately from the core [`thai_buddhist_date`](https://pub.dev/packages/thai_buddhist_date) package.
+Flutter calendar และ date pickers สำหรับปี พ.ศ./ค.ศ. สร้างบน [`thai_buddhist_date`](https://pub.dev/packages/thai_buddhist_date) รองรับ Flutter 3.19 ขึ้นไป
 
-- Month calendar header formats with BE/CE.
-- Dialog pickers: single date, date-time (with preview), range, multi-date.
-- Fullscreen single-date picker.
-- Theming knobs for dialog shape/padding.
+release นี้ตรวจ compatibility ด้วย Flutter 3.19.6 และ Flutter 3.44.2
+
+![Thai Buddhist picker demo](https://raw.githubusercontent.com/Kidpech-code/thai_buddhist_date/main/assets/images/thai_buddhist_date_pickers_photo_1.png)
 
 ## Install
 
 ```yaml
 dependencies:
-  thai_buddhist_date_pickers: ^0.2.0
-  thai_buddhist_date: ^0.3.0
+  thai_buddhist_date: ^0.4.0
+  thai_buddhist_date_pickers: ^0.3.0
 ```
 
-## Usage
+initialize locale ก่อนสร้าง app เมื่อใช้ชื่อเดือนหรือวันภาษาไทย:
 
 ```dart
-import 'package:thai_buddhist_date_pickers/thai_buddhist_date_pickers.dart';
-import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
-
-final picked = await showThaiDatePicker(context, era: tbd.Era.be, locale: 'th_TH');
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await tbd.ThaiDateService().initializeLocale('th_TH');
+  runApp(const MyApp());
+}
 ```
 
-Initialize Thai locale once if you want localized month/weekday names:
+## Calendar widget
 
 ```dart
-await tbd.ThaiDateService().initializeLocale('th_TH');
+BuddhistGregorianCalendar(
+  initialMonth: DateTime(2025, 8),
+  selectedDate: selectedDate,
+  firstDate: DateTime(2025, 1, 1),
+  lastDate: DateTime(2025, 12, 31),
+  era: tbd.Era.be,
+  locale: 'th_TH',
+  onDateSelected: (date) => setState(() => selectedDate = date),
+)
 ```
+
+`firstDate` และ `lastDate` เป็น inclusive bounds ปุ่มเปลี่ยนเดือนจะถูก disable ที่ขอบเขต ค่า selection ที่ส่งมาเองและอยู่นอกช่วงจะ throw `ArgumentError` ส่วนเดือนเริ่มต้นที่ระบบเลือกให้จะถูก clamp เข้ามาที่ขอบเขตโดยอัตโนมัติ
 
 ## Picker variants
 
-### Range picker
+### Single date
 
 ```dart
-final range = await showThaiDateRangePicker(
-  context,
-  era: tbd.Era.be,
-  locale: 'th_TH',
-);
-// range?.start, range?.end
-```
-
-### Multi-date picker
-
-```dart
-final days = await showThaiMultiDatePicker(
-  context,
-  era: tbd.Era.be,
-  locale: 'th_TH',
-);
-// days is Set<DateTime>
-```
-
-### Fullscreen picker
-
-```dart
-final d = await showThaiDatePickerFullscreen(
+final date = await showThaiDatePicker(
   context,
   initialDate: DateTime.now(),
   era: tbd.Era.be,
@@ -83,111 +56,62 @@ final d = await showThaiDatePickerFullscreen(
 );
 ```
 
-## Example
-
-A minimal example app is included under `example/`.
+### Date and time
 
 ```dart
-// example/lib/main.dart
-import 'package:flutter/material.dart';
-import 'package:thai_buddhist_date_pickers/thai_buddhist_date_pickers.dart';
-import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await tbd.ThaiDateService().initializeLocale('th_TH');
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Thai Pickers Example')),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Builder(
-                builder: (ctx) => ElevatedButton(
-                  onPressed: () async {
-                    final d = await showThaiDatePicker(
-                      ctx,
-                      initialDate: DateTime.now(),
-                      era: tbd.Era.be,
-                      locale: 'th_TH',
-                    );
-                    final label = d == null ? '-' : tbd.format(d, pattern: 'dmy', era: tbd.Era.be);
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('Picked date (พ.ศ.): $label')),
-                    );
-                  },
-                  child: const Text('Pick a date (พ.ศ.)'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Builder(
-                builder: (ctx) => ElevatedButton(
-                  onPressed: () async {
-                    final dt = await showThaiDateTimePicker(
-                      ctx,
-                      initialDateTime: DateTime.now(),
-                      era: tbd.Era.ce,
-                      locale: 'th_TH',
-                      formatString: 'dd/MM/yyyy HH:mm',
-                    );
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('Picked date-time (ค.ศ.): ${dt ?? '-'}')),
-                    );
-                  },
-                  child: const Text('Pick date-time (ค.ศ.)'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Builder(
-                builder: (ctx) => ElevatedButton(
-                  onPressed: () async {
-                    final range = await showThaiDateRangePicker(
-                      ctx,
-                      era: tbd.Era.be,
-                      locale: 'th_TH',
-                    );
-                    final text = range == null
-                        ? '-'
-                        : '${tbd.format(range.start, pattern: 'dmy')} → ${tbd.format(range.end, pattern: 'dmy')}';
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('Picked range: $text')),
-                    );
-                  },
-                  child: const Text('Pick range (พ.ศ.)'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Builder(
-                builder: (ctx) => ElevatedButton(
-                  onPressed: () async {
-                    final multiple = await showThaiMultiDatePicker(
-                      ctx,
-                      era: tbd.Era.be,
-                      locale: 'th_TH',
-                    );
-                    final list = (multiple ?? const <DateTime>{})
-                        .map((d) => tbd.format(d, pattern: 'dd/MM/yyyy'))
-                        .join(', ');
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('Picked multiple: ${list.isEmpty ? '-' : list}')),
-                    );
-                  },
-                  child: const Text('Pick multiple (พ.ศ.)'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+final dateTime = await showThaiDateTimePicker(
+  context,
+  initialDateTime: DateTime.now(),
+  formatString: 'dd/MM/yyyy HH:mm',
+  era: tbd.Era.be,
+  locale: 'th_TH',
+);
 ```
+
+### Range และ multi-date
+
+```dart
+final range = await showThaiDateRangePicker(
+  context,
+  initialStart: DateTime(2025, 8, 10),
+  initialEnd: DateTime(2025, 8, 15),
+  era: tbd.Era.be,
+  locale: 'th_TH',
+);
+
+final dates = await showThaiMultiDatePicker(
+  context,
+  initialDates: {DateTime(2025, 8, 10)},
+  era: tbd.Era.be,
+  locale: 'th_TH',
+);
+```
+
+### Formatted และ fullscreen
+
+```dart
+final output = await showThaiDatePickerFormatted(
+  context,
+  formatString: 'yyyy-MM-dd',
+  era: tbd.Era.ce,
+  locale: 'en_US',
+);
+
+final date = await showThaiDatePickerFullscreen(
+  context,
+  initialDate: DateTime.now(),
+  era: tbd.Era.be,
+  locale: 'th_TH',
+);
+```
+
+formatted wrappers รองรับ `shape`, `titlePadding`, `contentPadding`, `actionsPadding` และ `insetPadding` เช่นเดียวกับ dialog หลัก
+
+## Accessibility และ responsive layout
+
+- day cells เปิดใช้ keyboard focus และ screen-reader semantics
+- semantics ระบุวันที่เต็ม สถานะ selected และ disabled
+- ปุ่มเปลี่ยนเดือนมี tooltip และปิดใช้งานเมื่อชน bounds
+- dialog scroll ได้บนจอเล็กและเมื่อ text scaling สูง
+
+ตัวอย่างเต็มอยู่ที่ [`example/lib/main.dart`](example/lib/main.dart)

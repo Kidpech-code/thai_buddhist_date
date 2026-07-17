@@ -49,18 +49,14 @@ jobs:
           channel: stable
       - name: Install dependencies
         run: dart pub get
-      - name: Install Flutter example dependencies
-        run: flutter pub get
-        working-directory: packages/thai_buddhist_date/example/flutter_app
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed lib test tool example
       - name: Analyze
         run: dart analyze --fatal-infos
-      - name: Analyze Flutter example
-        run: flutter analyze --fatal-infos
-        working-directory: packages/thai_buddhist_date/example/flutter_app
       - name: Test
         run: dart test
+      - name: Run example
+        run: dart run example/main.dart
       - name: Validate package
         run: dart pub publish --dry-run
 
@@ -87,3 +83,26 @@ jobs:
         run: flutter test
       - name: Validate package
         run: flutter pub publish --dry-run
+
+  pickers-minimum:
+    name: Flutter picker package (Flutter 3.19.6)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/thai_buddhist_date_pickers
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Set up Flutter 3.19.6
+        uses: flutter-actions/setup-flutter@d4e97a6e7467ef062618c9af927f90bc9651b876
+        with:
+          channel: stable
+          version: 3.19.6
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test example/lib
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+      - name: Test
+        run: flutter test

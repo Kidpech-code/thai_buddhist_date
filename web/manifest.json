@@ -1,11 +1,11 @@
 {
-    "name": "thai_buddhist_date",
-    "short_name": "thai_buddhist_date",
+    "name": "Thai Buddhist Date Demo",
+    "short_name": "Thai Date",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Demo for Thai Buddhist date formatting and Flutter pickers.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

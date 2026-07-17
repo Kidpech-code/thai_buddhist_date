@@ -12,9 +12,9 @@ applies to maintainers, contributors, automation, and coding agents.
   package must never depend on Flutter or the picker package.
 - The application at the repository root is a demo and integration harness. New
   reusable behavior belongs in a package, not in the demo.
-- Existing duplicated picker code under `lib/widgets` is migration debt. Do not
-  add new business logic there. Changes must be made in the published picker
-  package first and then deliberately reflected in, or removed from, the demo.
+- The root demo imports picker behavior from the published picker package.
+  Do not reintroduce reusable calendar or picker implementations under the
+  demo's `lib/` directory.
 - Public APIs must be exported through each package entry point. Files under
   `lib/src` are implementation details unless explicitly exported.
 
@@ -79,9 +79,10 @@ they must not be retried indefinitely until green.
   request and review its maintenance, license, and security posture.
 - Dependency and SDK upgrades are intentional changes. Do not include incidental
   `pubspec.lock` refreshes in unrelated work.
-- Tracked lockfiles may change only when a dependency, SDK baseline, or example
-  environment is deliberately refreshed. Keep such changes reviewable and
-  mention them in the pull request.
+- Library lockfiles under `packages/*/pubspec.lock` are not tracked. Keep the
+  root demo and example-app lockfiles tracked; refresh them only when a
+  dependency, SDK baseline, or example environment is deliberately updated.
+  Keep such changes reviewable and mention them in the pull request.
 - Do not suppress analyzer rules repository-wide to hide a local issue. A
   suppression requires a narrow scope and an explanatory comment.
 - Do not commit generated build output, editor state, backup files, credentials,

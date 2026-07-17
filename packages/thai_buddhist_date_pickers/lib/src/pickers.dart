@@ -1,8 +1,32 @@
-// Copied from app demo pickers; depends on thai_buddhist_date.
 import 'package:flutter/material.dart';
 import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
 
 import 'buddhist_gregorian_calendar.dart';
+import 'date_picker_validation.dart';
+
+const _defaultDialogInsetPadding = EdgeInsets.symmetric(
+  horizontal: 40,
+  vertical: 24,
+);
+
+Widget _calendarViewport(Widget calendar, double? height) {
+  final constrained = ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: 420),
+    child: calendar,
+  );
+  if (height == null) return constrained;
+  return SizedBox(
+    height: height,
+    child: SingleChildScrollView(child: constrained),
+  );
+}
+
+void _validateRangeOrder(DateTime? start, DateTime? end) {
+  if (start != null && end != null && dateOnly(start).isAfter(dateOnly(end))) {
+    throw ArgumentError.value(
+        end, 'initialEnd', 'must not precede initialStart');
+  }
+}
 
 // Exported API: showThaiDatePicker, showThaiDateTimePicker, showThaiMultiDatePicker, showThaiDatePickerFullscreen,
 // showThaiDatePickerFormatted, showThaiDateTimePickerFormatted
@@ -90,28 +114,29 @@ class _ThaiDatePickerDialogState extends State<ThaiDatePickerDialog> {
   @override
   void initState() {
     super.initState();
+    validateDatePickerArguments(
+      firstDate: widget.firstDate,
+      lastDate: widget.lastDate,
+      initialDates: [widget.initialDate],
+    );
     _selected = widget.initialDate;
   }
 
   @override
   Widget build(BuildContext context) {
     final title = widget.title ?? 'เลือกวันที่';
-    final screenH = MediaQuery.of(context).size.height;
-    double calHeight = widget.height ?? screenH * 0.5;
-    if (calHeight < 320) calHeight = 320;
-    if (calHeight > 520) calHeight = 520;
     return AlertDialog(
+      scrollable: true,
       shape: widget.shape,
       titlePadding: widget.titlePadding,
       contentPadding: widget.contentPadding,
       actionsPadding: widget.actionsPadding,
-      insetPadding: widget.insetPadding,
+      insetPadding: widget.insetPadding ?? _defaultDialogInsetPadding,
       title: Text(title),
       content: SizedBox(
-        width: widget.width ?? double.maxFinite,
-        child: SizedBox(
-          height: calHeight,
-          child: BuddhistGregorianCalendar(
+        width: widget.width ?? 420,
+        child: _calendarViewport(
+          BuddhistGregorianCalendar(
             era: widget.era,
             locale: widget.locale,
             initialMonth: (_selected ?? widget.initialDate) ?? DateTime.now(),
@@ -122,6 +147,7 @@ class _ThaiDatePickerDialogState extends State<ThaiDatePickerDialog> {
             dayBuilder: widget.dayBuilder,
             onDateSelected: (d) => setState(() => _selected = d),
           ),
+          widget.height,
         ),
       ),
       actions: [
@@ -249,6 +275,13 @@ class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
   @override
   void initState() {
     super.initState();
+    validateDatePickerArguments(
+      firstDate: widget.firstDate,
+      lastDate: widget.lastDate,
+      initialDates: [widget.initialStart, widget.initialEnd],
+      initialArgumentName: 'initial range',
+    );
+    _validateRangeOrder(widget.initialStart, widget.initialEnd);
     _start = widget.initialStart;
     _end = widget.initialEnd;
   }
@@ -261,26 +294,23 @@ class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
     return !x.isBefore(s) && !x.isAfter(e);
   }
 
+  bool _isRangeSelected(DateTime date) =>
+      _inRange(date) ||
+      (_start != null && _end == null && isSameDate(date, _start!));
+
   @override
   Widget build(BuildContext context) {
     final title = widget.title ?? 'เลือกช่วงวันที่';
-    final screenH = MediaQuery.of(context).size.height;
-    double calHeight = widget.height ?? screenH * 0.5;
-    if (calHeight < 320) calHeight = 320;
-    if (calHeight > 520) calHeight = 520;
-
     Widget dayBuilder(
         BuildContext ctx, DateTime date, bool selected, bool disabled) {
-      final inRange =
-          _inRange(date) || (_start != null && _end == null && date == _start);
+      final inRange = _isRangeSelected(date);
       final bg = disabled
-          ? Theme.of(ctx).disabledColor.withValues(alpha: 0.1)
-          : (inRange
-              ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18)
-              : null);
+          ? Theme.of(ctx).disabledColor.withAlpha(26)
+          : (inRange ? Theme.of(ctx).colorScheme.primary.withAlpha(46) : null);
       final fg = disabled
           ? Theme.of(ctx).disabledColor
-          : (date == _start || date == _end
+          : ((_start != null && isSameDate(date, _start!)) ||
+                  (_end != null && isSameDate(date, _end!))
               ? Theme.of(ctx).colorScheme.primary
               : null);
       return Container(
@@ -292,7 +322,8 @@ class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
           '${date.day}',
           style: TextStyle(
               color: fg,
-              fontWeight: (date == _start || date == _end)
+              fontWeight: ((_start != null && isSameDate(date, _start!)) ||
+                      (_end != null && isSameDate(date, _end!)))
                   ? FontWeight.w700
                   : FontWeight.w500),
         ),
@@ -317,27 +348,29 @@ class _ThaiDateRangePickerDialogState extends State<ThaiDateRangePickerDialog> {
     }
 
     return AlertDialog(
+      scrollable: true,
       shape: widget.shape,
       titlePadding: widget.titlePadding,
       contentPadding: widget.contentPadding,
       actionsPadding: widget.actionsPadding,
-      insetPadding: widget.insetPadding,
+      insetPadding: widget.insetPadding ?? _defaultDialogInsetPadding,
       title: Text(title),
       content: SizedBox(
-        width: widget.width ?? double.maxFinite,
-        child: SizedBox(
-          height: calHeight,
-          child: BuddhistGregorianCalendar(
+        width: widget.width ?? 420,
+        child: _calendarViewport(
+          BuddhistGregorianCalendar(
             era: widget.era,
             locale: widget.locale,
             initialMonth: (_start ?? widget.initialStart) ?? DateTime.now(),
             selectedDate: _start,
+            isDateSelected: _isRangeSelected,
             firstDate: widget.firstDate,
             lastDate: widget.lastDate,
             headerBuilder: widget.headerBuilder,
             dayBuilder: widget.dayBuilder ?? dayBuilder,
             onDateSelected: onTap,
           ),
+          widget.height,
         ),
       ),
       actions: [
@@ -362,7 +395,17 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
   @override
   void initState() {
     super.initState();
-    final init = widget.initialDateTime ?? DateTime.now();
+    validateDatePickerArguments(
+      firstDate: widget.firstDate,
+      lastDate: widget.lastDate,
+      initialDates: [widget.initialDateTime],
+      initialArgumentName: 'initialDateTime',
+    );
+    final init = clampDateToBounds(
+      widget.initialDateTime ?? DateTime.now(),
+      firstDate: widget.firstDate,
+      lastDate: widget.lastDate,
+    );
     _selected = DateTime(init.year, init.month, init.day);
     _time = TimeOfDay(hour: init.hour, minute: init.minute);
   }
@@ -379,26 +422,22 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
             era: widget.era,
             locale: widget.locale,
           );
-    final screenH = MediaQuery.of(context).size.height;
-    double calHeight = widget.height ?? screenH * 0.5;
-    if (calHeight < 320) calHeight = 320;
-    if (calHeight > 520) calHeight = 520;
     return AlertDialog(
+      scrollable: true,
       shape: widget.shape,
       titlePadding: widget.titlePadding,
       contentPadding: widget.contentPadding,
       actionsPadding: widget.actionsPadding,
-      insetPadding: widget.insetPadding,
+      insetPadding: widget.insetPadding ?? _defaultDialogInsetPadding,
       title: Text(title),
       content: SizedBox(
-        width: widget.width ?? double.maxFinite,
+        width: widget.width ?? 420,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: calHeight,
-              child: BuddhistGregorianCalendar(
+            _calendarViewport(
+              BuddhistGregorianCalendar(
                 era: widget.era,
                 locale: widget.locale,
                 initialMonth:
@@ -410,6 +449,7 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
                 dayBuilder: widget.dayBuilder,
                 onDateSelected: (d) => setState(() => _selected = d),
               ),
+              widget.height,
             ),
             const SizedBox(height: 8),
             Row(
@@ -424,6 +464,7 @@ class _ThaiDateTimePickerDialogState extends State<ThaiDateTimePickerDialog> {
                   onPressed: () async {
                     final picked = await showTimePicker(
                         context: context, initialTime: _time);
+                    if (!mounted) return;
                     if (picked != null) setState(() => _time = picked);
                   },
                   child: const Text('เลือกเวลา'),
@@ -524,6 +565,11 @@ Future<String?> showThaiDateTimePickerFormatted(
           BuildContext, DateTime, tbd.Era, String?, VoidCallback, VoidCallback)?
       headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
+  ShapeBorder? shape,
+  EdgeInsetsGeometry? titlePadding,
+  EdgeInsetsGeometry? contentPadding,
+  EdgeInsetsGeometry? actionsPadding,
+  EdgeInsets? insetPadding,
 }) async {
   final dt = await showThaiDateTimePicker(
     context,
@@ -539,6 +585,11 @@ Future<String?> showThaiDateTimePickerFormatted(
     height: height,
     headerBuilder: headerBuilder,
     dayBuilder: dayBuilder,
+    shape: shape,
+    titlePadding: titlePadding,
+    contentPadding: contentPadding,
+    actionsPadding: actionsPadding,
+    insetPadding: insetPadding,
   );
   if (dt == null) return null;
   return tbd.format(dt, format: formatString, era: era, locale: locale);
@@ -567,6 +618,11 @@ Future<DateTime?> showThaiDatePicker(
   EdgeInsetsGeometry? actionsPadding,
   EdgeInsets? insetPadding,
 }) {
+  validateDatePickerArguments(
+    firstDate: firstDate,
+    lastDate: lastDate,
+    initialDates: [initialDate],
+  );
   return showDialog<DateTime?>(
     context: context,
     builder: (_) => ThaiDatePickerDialog(
@@ -615,6 +671,12 @@ Future<DateTime?> showThaiDateTimePicker(
   EdgeInsets? insetPadding,
   String formatString = 'dd/MM/yyyy HH:mm',
 }) {
+  validateDatePickerArguments(
+    firstDate: firstDate,
+    lastDate: lastDate,
+    initialDates: [initialDateTime],
+    initialArgumentName: 'initialDateTime',
+  );
   return showDialog<DateTime?>(
     context: context,
     builder: (_) => ThaiDateTimePickerDialog(
@@ -664,6 +726,13 @@ Future<DateTimeRange?> showThaiDateRangePicker(
   EdgeInsetsGeometry? actionsPadding,
   EdgeInsets? insetPadding,
 }) {
+  validateDatePickerArguments(
+    firstDate: firstDate,
+    lastDate: lastDate,
+    initialDates: [initialStart, initialEnd],
+    initialArgumentName: 'initial range',
+  );
+  _validateRangeOrder(initialStart, initialEnd);
   return showDialog<DateTimeRange?>(
     context: context,
     builder: (_) => ThaiDateRangePickerDialog(
@@ -743,6 +812,12 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
   @override
   void initState() {
     super.initState();
+    validateDatePickerArguments(
+      firstDate: widget.firstDate,
+      lastDate: widget.lastDate,
+      initialDates: widget.initialDates ?? const <DateTime>{},
+      initialArgumentName: 'initialDates',
+    );
     _selected = {
       ...(widget.initialDates?.map((d) => DateTime(d.year, d.month, d.day)) ??
           const <DateTime>{})
@@ -758,19 +833,12 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
   @override
   Widget build(BuildContext context) {
     final title = widget.title ?? 'เลือกหลายวันที่';
-    final screenH = MediaQuery.of(context).size.height;
-    double calHeight = widget.height ?? screenH * 0.5;
-    if (calHeight < 320) calHeight = 320;
-    if (calHeight > 520) calHeight = 520;
-
     Widget dayBuilder(
         BuildContext ctx, DateTime date, bool selected, bool disabled) {
       final picked = _contains(date);
       final bg = disabled
-          ? Theme.of(ctx).disabledColor.withValues(alpha: 0.1)
-          : (picked
-              ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.18)
-              : null);
+          ? Theme.of(ctx).disabledColor.withAlpha(26)
+          : (picked ? Theme.of(ctx).colorScheme.primary.withAlpha(46) : null);
       final fg = disabled
           ? Theme.of(ctx).disabledColor
           : (picked ? Theme.of(ctx).colorScheme.primary : null);
@@ -801,28 +869,30 @@ class _ThaiMultiDatePickerDialogState extends State<ThaiMultiDatePickerDialog> {
     }
 
     return AlertDialog(
+      scrollable: true,
       shape: widget.shape,
       titlePadding: widget.titlePadding,
       contentPadding: widget.contentPadding,
       actionsPadding: widget.actionsPadding,
-      insetPadding: widget.insetPadding,
+      insetPadding: widget.insetPadding ?? _defaultDialogInsetPadding,
       title: Text(title),
       content: SizedBox(
-        width: widget.width ?? double.maxFinite,
-        child: SizedBox(
-          height: calHeight,
-          child: BuddhistGregorianCalendar(
+        width: widget.width ?? 420,
+        child: _calendarViewport(
+          BuddhistGregorianCalendar(
             era: widget.era,
             locale: widget.locale,
             initialMonth: (_selected.isNotEmpty ? _selected.first : null) ??
                 DateTime.now(),
             selectedDate: _selected.isNotEmpty ? _selected.first : null,
+            isDateSelected: _contains,
             firstDate: widget.firstDate,
             lastDate: widget.lastDate,
             headerBuilder: widget.headerBuilder,
             dayBuilder: widget.dayBuilder ?? dayBuilder,
             onDateSelected: onTap,
           ),
+          widget.height,
         ),
       ),
       actions: [
@@ -863,6 +933,12 @@ Future<Set<DateTime>?> showThaiMultiDatePicker(
   EdgeInsetsGeometry? actionsPadding,
   EdgeInsets? insetPadding,
 }) {
+  validateDatePickerArguments(
+    firstDate: firstDate,
+    lastDate: lastDate,
+    initialDates: initialDates ?? const <DateTime>{},
+    initialArgumentName: 'initialDates',
+  );
   return showDialog<Set<DateTime>?>(
     context: context,
     builder: (_) => ThaiMultiDatePickerDialog(
@@ -901,6 +977,11 @@ Future<DateTime?> showThaiDatePickerFullscreen(
       headerBuilder,
   Widget Function(BuildContext, DateTime, bool, bool)? dayBuilder,
 }) {
+  validateDatePickerArguments(
+    firstDate: firstDate,
+    lastDate: lastDate,
+    initialDates: [initialDate],
+  );
   return Navigator.of(context).push<DateTime>(
     MaterialPageRoute(
       builder: (_) => _FullscreenPickerPage(
@@ -950,6 +1031,11 @@ class _FullscreenPickerPageState extends State<_FullscreenPickerPage> {
   @override
   void initState() {
     super.initState();
+    validateDatePickerArguments(
+      firstDate: widget.firstDate,
+      lastDate: widget.lastDate,
+      initialDates: [widget.initialDate],
+    );
     _selected = widget.initialDate;
   }
 

@@ -4,13 +4,13 @@ description: Minimal example app for thai_buddhist_date_pickers
 version: 1.0.0
 environment:
   sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.10.0"
+  flutter: ">=3.19.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  thai_buddhist_date_pickers: ^0.2.0
-  thai_buddhist_date: ^0.3.0
+  thai_buddhist_date_pickers: ^0.3.0
+  thai_buddhist_date: ^0.4.0
 
 flutter:
   uses-material-design: true

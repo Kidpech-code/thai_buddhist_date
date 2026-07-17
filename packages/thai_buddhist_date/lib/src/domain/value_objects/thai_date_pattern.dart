@@ -49,6 +49,13 @@ class ThaiDatePattern {
     'long': ThaiDatePattern(
       pattern: 'd MMMM yyyy',
     ),
+    'shortDate': ThaiDatePattern(
+      pattern: 'dd/MM/yyyy',
+      separator: '/',
+    ),
+    'longDate': ThaiDatePattern(
+      pattern: 'd MMMM yyyy',
+    ),
     'iso': ThaiDatePattern(
       pattern: 'yyyy-MM-dd',
     ),
@@ -102,6 +109,10 @@ class ThaiDatePattern {
 }
 
 /// Helper class for list equality checking
+@Deprecated(
+  'Use package:collection or record equality instead. '
+  'Planned removal in 0.5.0.',
+)
 class ListEquality<T> {
   const ListEquality();
 

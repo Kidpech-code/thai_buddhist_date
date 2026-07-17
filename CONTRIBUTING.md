@@ -70,8 +70,10 @@ docs: clarify locale initialization
 ```
 
 Keep dependency upgrades, generated files, and lockfile refreshes out of an
-unrelated change. Pull requests must state which commands were actually run and
-must call out API, dependency, security, or release impact.
+unrelated change. Library package lockfiles are intentionally ignored; the root
+demo and example-app lockfiles remain tracked. Pull requests must state which
+commands were actually run and must call out API, dependency, security, or
+release impact.
 
 Maintainers may request changes when a contribution lacks regression coverage,
 changes an undocumented public contract, or duplicates logic between the demo

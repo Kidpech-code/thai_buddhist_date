@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0 - 2026-07-17
+
+- Validate date bounds and every initial selection across single, date-time,
+  range, multi-date, formatted, and fullscreen variants.
+- Clamp the automatically selected visible month/date into configured bounds
+  when no explicit initial value is provided.
+- Recompute calendar labels when era, locale, first weekday, or initial month
+  changes and disable month navigation at configured bounds.
+- Add full-date semantics, selected/disabled state, tooltips, and keyboard
+  focus for calendar controls.
+- Add `BuddhistGregorianCalendar.isDateSelected` for accessible range and
+  multi-date selection state without replacing existing APIs.
+- Make dialogs scrollable on small displays and with large text scaling.
+- Preserve Material's default dialog inset padding with an API shape that
+  compiles on Flutter 3.19.6 and current stable.
+- Forward dialog shape and padding options through formatted date-time helpers.
+- Add regression coverage for picker results, cancel/confirm behavior,
+  validation, property updates, accessibility, and responsive layout.
+- Support Flutter 3.19 and stable in CI with strict analyzer settings.
+- Accept compatible core releases from `0.3.0` through `0.4.x`.
+- Stop tracking this library package's `pubspec.lock`; the example app lockfile
+  remains tracked and is refreshed with Flutter 3.44.2.
+
 ## 0.2.0 - 2026-05-22
 
 - Require `thai_buddhist_date: ^0.3.0` (Clean Architecture edition).

@@ -1,85 +1,49 @@
-# thai_buddhist_date (demo app)
+# thai_buddhist_date repository
 
-This repository contains two published packages and a Flutter demo app that
-exercises them together:
+Monorepo สำหรับไลบรารีวันที่ไทยและ Flutter demo:
 
-- A month calendar widget that can display years in พ.ศ. or ค.ศ.
-- Dialog pickers for single date and date‑time (with live preview format),
-- Range and multi‑date pickers,
-- Fullscreen variant,
-- Theming and spacing customization for dialogs.
-  - Dialogs: shape, title/content/actions padding, insetPadding
+- [`thai_buddhist_date`](packages/thai_buddhist_date) — pure Dart สำหรับ parse, format และแปลงปี พ.ศ./ค.ศ.
+- [`thai_buddhist_date_pickers`](packages/thai_buddhist_date_pickers) — calendar และ picker UI สำหรับ Flutter
+- แอปที่ root — integration demo ของทั้งสอง package
 
-The reusable libraries live under `packages/`. The application at the repository
-root is a demo and integration harness; it is not published.
+ตัว demo ใช้ implementation จาก picker package โดยตรง ไม่มีสำเนา widget แยกในแอป
 
-## Related packages
+## Run demo
 
-- Core library: `packages/thai_buddhist_date` — pub: https://pub.dev/packages/thai_buddhist_date
-- Pickers & calendar UI: `packages/thai_buddhist_date_pickers` — pub: https://pub.dev/packages/thai_buddhist_date_pickers
-
-## Running
-
-1. Ensure you have Flutter installed and a device/simulator available.
-2. Fetch dependencies:
+ต้องใช้ Flutter 3.19 ขึ้นไป โดย release นี้ตรวจจริงด้วย Flutter 3.19.6 และ
+Flutter 3.44.2
 
 ```bash
 flutter pub get
-```
-
-3. Run the app:
-
-```bash
 flutter run
 ```
 
-The app initializes Thai locale data on startup (`ThaiCalendar.ensureInitialized()`) so month/weekday names appear correctly when using locale‑aware patterns.
-
-## What’s inside
-
-- `lib/widgets/buddhist_gregorian_calendar.dart` — Month calendar that formats header via the package’s BE/CE formatter.
-- `lib/widgets/pickers.dart` — Dialogs and fullscreen:
-  - Single date and date‑time (with `formatString` preview),
-  - Range (`DateTimeRange`) and multi‑date (`Set<DateTime>`),
-  - A fullscreen page,
-  - Theming hooks: `shape`, paddings, `insetPadding`.
-- `packages/thai_buddhist_date` — The core library with token‑aware formatting/parsing and helper APIs.
-- `packages/thai_buddhist_date_pickers` — Extracted Flutter UI package (calendar and dialog pickers) published separately.
-
 ## Quality checks
 
-The root command tests only the demo application:
-
 ```bash
+# Root demo
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze --fatal-infos
-flutter test -r compact
-```
+flutter test
 
-Run package checks from each package directory:
-
-```bash
+# Core package
 cd packages/thai_buddhist_date
+dart format --output=none --set-exit-if-changed lib test tool example
 dart analyze --fatal-infos
 dart test
 dart pub publish --dry-run
 
+# Picker package
 cd ../thai_buddhist_date_pickers
+dart format --output=none --set-exit-if-changed lib test example/lib
 flutter analyze --fatal-infos
 flutter test
 flutter pub publish --dry-run
 ```
 
-The GitHub Actions CI workflow runs the demo, core package, and picker package as
-separate jobs.
-
-## Contributing and governance
+## Project policies
 
 - [Engineering policy](docs/ENGINEERING_POLICY.md)
-- [Contribution guide](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
-- [Release guide](RELEASING.md)
-
-## Notes
-
-- For localized month/weekday names, initialize Thai locale once on app startup with `await ThaiCalendar.ensureInitialized()`.
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Releasing](RELEASING.md)

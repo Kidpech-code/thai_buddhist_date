@@ -34,7 +34,7 @@ class ThaiDateConfig {
 
   /// Validate configuration
   bool get isValid {
-    return SupportedLocales.isSupported(locale);
+    return locale.trim().isNotEmpty;
   }
 
   /// Default configuration

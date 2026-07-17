@@ -29,5 +29,5 @@ extension DoubleThaiExtensions on double {
   int get toBE => Era.be.fromCE(round());
 
   /// Convert BE year to CE year (rounded)
-  int get toCE => Era.ce.fromCE(round());
+  int get toCE => Era.be.toCE(round());
 }

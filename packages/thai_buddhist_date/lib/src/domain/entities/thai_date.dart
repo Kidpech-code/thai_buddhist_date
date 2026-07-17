@@ -2,8 +2,8 @@ import '../value_objects/era.dart';
 
 /// Immutable entity representing a Thai Buddhist (or Common Era) date.
 ///
-/// All field validation is enforced in both debug and release builds.
-/// Use [ThaiDate.fromDateTime] or [ThaiDate.now] for convenient construction.
+/// Use [ThaiDate.safe] for validation in both debug and release builds, or
+/// [ThaiDate.fromDateTime] and [ThaiDate.now] for convenient construction.
 class ThaiDate implements Comparable<ThaiDate> {
   /// Creates a [ThaiDate].
   ///
@@ -47,8 +47,14 @@ class ThaiDate implements Comparable<ThaiDate> {
     if (month < 1 || month > 12) {
       throw ArgumentError.value(month, 'month', 'must be in range 1–12');
     }
-    if (day < 1 || day > 31) {
-      throw ArgumentError.value(day, 'day', 'must be in range 1–31');
+    final ceYear = era.toCE(year);
+    final daysInMonth = DateTime(ceYear, month + 1, 0).day;
+    if (day < 1 || day > daysInMonth) {
+      throw ArgumentError.value(
+        day,
+        'day',
+        'must be valid for year $year and month $month',
+      );
     }
     if (hour < 0 || hour > 23) {
       throw ArgumentError.value(hour, 'hour', 'must be in range 0–23');
@@ -161,12 +167,15 @@ class ThaiDate implements Comparable<ThaiDate> {
 
   /// Check if date is valid
   bool get isValid {
-    try {
-      toDateTime();
-      return true;
-    } catch (_) {
-      return false;
-    }
+    final dateTime = toDateTime();
+    return dateTime.year == ceYear &&
+        dateTime.month == month &&
+        dateTime.day == day &&
+        dateTime.hour == hour &&
+        dateTime.minute == minute &&
+        dateTime.second == second &&
+        dateTime.millisecond == millisecond &&
+        dateTime.microsecond == microsecond;
   }
 
   /// Get year in CE

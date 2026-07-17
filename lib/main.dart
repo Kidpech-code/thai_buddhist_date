@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
-
-import 'widgets/buddhist_gregorian_calendar.dart';
 import 'package:thai_buddhist_date/thai_buddhist_date.dart' as tbd;
-import 'package:thai_buddhist_date_pickers/thai_buddhist_date_pickers.dart'
-    show
-        showThaiDatePicker,
-        showThaiDateTimePicker,
-        showThaiMultiDatePicker,
-        showThaiDatePickerFullscreen,
-        showThaiDatePickerFormatted,
-        showThaiDateTimePickerFormatted;
+import 'package:thai_buddhist_date_pickers/thai_buddhist_date_pickers.dart';
 
 Future<void> main() async {
-  // Ensure Thai locale data is loaded for month/weekday names
   WidgetsFlutterBinding.ensureInitialized();
+  await tbd.ThaiDateService().initializeLocale('th_TH');
   runApp(const MyApp());
 }
 
@@ -163,6 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       era: _era,
                       locale: 'th_TH',
                     );
+                    if (!mounted) return;
                     if (picked != null) setState(() => _selected = picked);
                   },
                   icon: const Icon(Icons.event),
@@ -177,6 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       locale: 'th_TH',
                       formatString: 'dd MMM yyyy HH:mm',
                     );
+                    if (!mounted) return;
                     if (picked != null) setState(() => _selected = picked);
                   },
                   icon: const Icon(Icons.schedule),
@@ -190,6 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       era: _era,
                       locale: 'th_TH',
                     );
+                    if (!mounted) return;
                     if (m != null) setState(() => _multi = m);
                   },
                   icon: const Icon(Icons.event_repeat),
@@ -203,6 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       era: _era,
                       locale: 'th_TH',
                     );
+                    if (!mounted) return;
                     if (picked != null) setState(() => _selected = picked);
                   },
                   icon: const Icon(Icons.fullscreen),
@@ -217,6 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       locale: 'th_TH',
                       formatString: 'dd/MM/yyyy',
                     );
+                    if (!mounted) return;
                     if (out != null) setState(() => _formattedOut = out);
                   },
                   icon: const Icon(Icons.output),
@@ -231,6 +227,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       locale: 'th_TH',
                       formatString: 'dd/MM/yyyy HH:mm',
                     );
+                    if (!mounted) return;
                     if (out != null) setState(() => _formattedOut = out);
                   },
                   icon: const Icon(Icons.text_fields),

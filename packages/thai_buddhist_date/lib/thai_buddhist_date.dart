@@ -1,49 +1,32 @@
-// thai_buddhist_date.dart
-//
-// Clean Architecture implementation of Thai Buddhist Date library
-// Provides high-performance, maintainable date handling with Thai Buddhist Era support
-//
-// © 2024 Thai Buddhist Date Package - Clean Architecture Edition
-
 library;
 
-// Import necessary classes for the convenience functions
 import 'package:intl/intl.dart';
 import 'src/domain/entities/thai_date.dart';
 import 'src/domain/value_objects/era.dart';
 import 'src/domain/value_objects/locale_config.dart';
 import 'src/domain/value_objects/thai_date_pattern.dart';
 import 'src/application/services/thai_date_service.dart';
+import 'src/infrastructure/token_aware_date_formatter.dart';
 
-// Core Clean Architecture Exports
-// ================================
-
-// Domain Layer - Business Logic & Entities
+// Public types and services.
 export 'src/domain/entities/thai_date.dart';
 export 'src/domain/value_objects/era.dart';
 export 'src/domain/value_objects/locale_config.dart';
 export 'src/domain/value_objects/thai_date_config.dart';
 export 'src/domain/value_objects/thai_date_pattern.dart';
+export 'src/domain/repositories/i_date_formatter_repository.dart';
+export 'src/domain/repositories/i_date_parser_repository.dart';
 
-// Application Layer - Use Cases & Services
 export 'src/application/services/thai_date_service.dart';
 export 'src/application/services/cache_service.dart';
 export 'src/application/use_cases/format_thai_date_use_case.dart';
 export 'src/application/use_cases/parse_thai_date_use_case.dart';
 
-// Presentation Layer - High-Level API
 export 'src/presentation/extensions/datetime_extensions.dart';
 export 'src/presentation/extensions/string_extensions.dart';
 export 'src/presentation/extensions/int_extensions.dart';
 
-// Infrastructure Layer (Optional - for advanced usage)
-// export 'src/infrastructure/intl_date_formatter_repository.dart';
-// export 'src/infrastructure/intl_date_parser_repository.dart';
-
-// Convenience Re-exports for Common Usage
-// ========================================
-
-// Main service instance for quick access
+// Convenience API.
 ThaiDateService get thaiDateService => ThaiDateService();
 
 // Common era values
@@ -54,12 +37,11 @@ const Era commonEra = Era.ce;
 const String thaiLocale = 'th_TH';
 const String englishLocale = 'en_US';
 
-// Version information
-const String version = '2.0.0';
+const String version = '0.4.0';
+@Deprecated(
+  'Architecture is an implementation detail. Planned removal in 0.5.0.',
+)
 const String architectureType = 'Clean Architecture';
-
-/// Quick Format Functions - Convenience API
-/// ==========================================
 
 /// Format current date/time as Thai Buddhist date
 Future<String> formatNowThai({
@@ -216,13 +198,8 @@ class ThaiDateSettings {
       defaultLocale = _languageToLocale(language);
       ThaiDateService().setLanguage(language);
     } else if (locale != null && locale.isNotEmpty) {
-      if (SupportedLocales.isSupported(locale)) {
-        defaultLocale = locale;
-        ThaiDateService().setLocale(locale);
-      } else {
-        // Still store for compatibility, even if not in SupportedLocales
-        defaultLocale = locale;
-      }
+      defaultLocale = locale;
+      ThaiDateService().setLocale(locale);
     }
   }
 
@@ -265,14 +242,41 @@ class ThaiCalendar {
     String preset(String key) {
       switch (key) {
         case 'fullText':
-          final s = DateFormat.yMMMMEEEEd(loc).format(date);
-          return era == Era.be ? _replaceYearWithBE(s, date.year) : s;
+          final formatter = DateFormat.yMMMMEEEEd(loc);
+          return era == Era.be
+              ? _tokenAwareFormat(
+                  date,
+                  formatter.pattern ?? 'EEEE, d MMMM yyyy',
+                  locale: loc,
+                )
+              : formatter.format(date);
         case 'long':
-          final s = DateFormat.yMMMMd(loc).format(date);
-          return era == Era.be ? _replaceYearWithBE(s, date.year) : s;
+          final formatter = DateFormat.yMMMMd(loc);
+          return era == Era.be
+              ? _tokenAwareFormat(
+                  date,
+                  formatter.pattern ?? 'd MMMM yyyy',
+                  locale: loc,
+                )
+              : formatter.format(date);
+        case 'shortDate':
+          return ThaiCalendar.format(
+            date,
+            pattern: 'dd/MM/yyyy',
+            era: era,
+            locale: loc,
+          );
+        case 'longDate':
+          return ThaiCalendar.format(
+            date,
+            pattern: 'd MMMM yyyy',
+            era: era,
+            locale: loc,
+          );
         case 'dmy':
-          final s = DateFormat('d MMMM yyyy', loc).format(date);
-          return era == Era.be ? _replaceYearWithBE(s, date.year) : s;
+          return era == Era.be
+              ? _tokenAwareFormat(date, 'd MMMM yyyy', locale: loc)
+              : DateFormat('d MMMM yyyy', loc).format(date);
         case 'slash':
           return '${_pad2(date.day)}/${_pad2(date.month)}/${era == Era.be ? date.year + 543 : date.year}';
         case 'dash':
@@ -470,66 +474,14 @@ class ThaiCalendar {
   // --- Legacy helpers (token-aware BE formatting) ---
   static String _pad2(int n) => n.toString().padLeft(2, '0');
 
-  static String _replaceYearWithBE(String s, int ceYear) {
-    final be = (ceYear + 543).toString();
-    final ce = ceYear.toString();
-    return s.replaceAllMapped(
-        RegExp(r'\d{4}'), (m) => m.group(0) == ce ? be : m.group(0)!);
-  }
-
   static String _tokenAwareFormat(DateTime dt, String pattern,
       {String? locale}) {
-    final loc = locale ?? Intl.getCurrentLocale();
-    final beYear = dt.year + 543;
-
-    final tokens = <String>[];
-    final buf = StringBuffer();
-    var i = 0;
-    var inQuote = false;
-    var tokenIndex = 0;
-    while (i < pattern.length) {
-      final c = pattern[i];
-      if (c == "'") {
-        inQuote = !inQuote;
-        buf.write(c);
-        i++;
-        continue;
-      }
-      if (!inQuote && c == 'y') {
-        var j = i;
-        while (j < pattern.length && pattern[j] == 'y') {
-          j++;
-        }
-        final run = pattern.substring(i, j);
-        final placeholder = '__BE_YEAR${tokenIndex}__';
-        tokens.add(run);
-        buf.write("'$placeholder'");
-        tokenIndex++;
-        i = j;
-        continue;
-      }
-      buf.write(c);
-      i++;
-    }
-
-    final modifiedPattern = buf.toString();
-    final base = DateFormat(modifiedPattern, loc).format(dt);
-
-    var result = base;
-    for (var idx = 0; idx < tokens.length; idx++) {
-      final run = tokens[idx];
-      final placeholder = '__BE_YEAR${idx}__';
-      String repl;
-      if (run.length == 2) {
-        repl = (beYear % 100).toString().padLeft(2, '0');
-      } else if (run.length == 1) {
-        repl = beYear.toString();
-      } else {
-        repl = beYear.toString().padLeft(run.length, '0');
-      }
-      result = result.replaceFirst(placeholder, repl);
-    }
-    return result;
+    return formatDateWithYearOverride(
+      dt,
+      pattern,
+      outputYear: dt.year + 543,
+      locale: locale ?? Intl.getCurrentLocale(),
+    );
   }
 }
 

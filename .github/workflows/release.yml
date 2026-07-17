@@ -6,9 +6,49 @@ on:
       - "thai_buddhist_date-v[0-9]+.[0-9]+.[0-9]+"
       - "thai_buddhist_date_pickers-v[0-9]+.[0-9]+.[0-9]+"
 
+permissions:
+  contents: read
+
 jobs:
+  verify-release:
+    name: Verify release tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Match tag to package version
+        shell: bash
+        run: |
+          case "$GITHUB_REF_NAME" in
+            thai_buddhist_date-v*)
+              package="packages/thai_buddhist_date"
+              prefix="thai_buddhist_date-v"
+              ;;
+            thai_buddhist_date_pickers-v*)
+              package="packages/thai_buddhist_date_pickers"
+              prefix="thai_buddhist_date_pickers-v"
+              ;;
+            *)
+              echo "Unsupported release tag: $GITHUB_REF_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          tag_version="${GITHUB_REF_NAME#"$prefix"}"
+          package_version="$(
+            sed -n 's/^version:[[:space:]]*//p' "$package/pubspec.yaml" |
+              head -n 1 |
+              tr -d '"[:space:]'
+          )"
+
+          if [[ "$tag_version" != "$package_version" ]]; then
+            echo "Tag version $tag_version does not match $package_version" >&2
+            exit 1
+          fi
+
   publish-core:
     name: Publish thai_buddhist_date
+    needs: verify-release
     if: startsWith(github.ref_name, 'thai_buddhist_date-v')
     permissions:
       contents: read
@@ -20,6 +60,7 @@ jobs:
 
   publish-pickers:
     name: Publish thai_buddhist_date_pickers
+    needs: verify-release
     if: startsWith(github.ref_name, 'thai_buddhist_date_pickers-v')
     permissions:
       contents: read

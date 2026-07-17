@@ -4,17 +4,21 @@ import '../../domain/value_objects/thai_date_config.dart';
 import '../../domain/value_objects/thai_date_pattern.dart';
 import '../../domain/value_objects/era.dart';
 import '../../domain/repositories/i_date_parser_repository.dart';
+import 'format_thai_date_use_case.dart';
 
 /// Use case for parsing Thai date strings with intelligent era detection
 class ParseThaiDateUseCase {
   const ParseThaiDateUseCase({
     required IDateParserRepository parserRepository,
     required CacheService cacheService,
+    FormatThaiDateUseCase? formatUseCase,
   })  : _parserRepository = parserRepository,
-        _cacheService = cacheService;
+        _cacheService = cacheService,
+        _formatUseCase = formatUseCase;
 
   final IDateParserRepository _parserRepository;
   final CacheService _cacheService;
+  final FormatThaiDateUseCase? _formatUseCase;
 
   /// Parse date string with intelligent era detection
   ThaiDate? execute({
@@ -99,7 +103,11 @@ class ParseThaiDateUseCase {
     return result != null;
   }
 
-  /// Convert between patterns
+  /// Convert between patterns.
+  @Deprecated(
+    'Use ThaiDateService.convert for locale-aware conversion. '
+    'Planned removal in 0.5.0.',
+  )
   String? convert({
     required String input,
     required String fromPatternKey,
@@ -113,11 +121,17 @@ class ParseThaiDateUseCase {
       config: config,
     );
 
-    if (parsedDate == null) return null;
+    final formatUseCase = _formatUseCase;
+    if (parsedDate == null || formatUseCase == null) return null;
 
-    // This would need the format use case - simplified for now
-    // In real implementation, inject FormatThaiDateUseCase
-    return null; // Placeholder
+    final effectiveConfig = (config ?? ThaiDateConfig.defaultConfig).copyWith(
+      era: toEra,
+    );
+    return formatUseCase.executeSync(
+      date: parsedDate,
+      patternKey: toPatternKey,
+      config: effectiveConfig,
+    );
   }
 
   ThaiDate? _parseWithEraDetection(String input, ThaiDateConfig config) {

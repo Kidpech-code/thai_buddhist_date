@@ -4,6 +4,7 @@ import '../domain/entities/thai_date.dart';
 import '../domain/value_objects/thai_date_config.dart';
 import '../domain/value_objects/thai_date_pattern.dart';
 import '../domain/value_objects/era.dart';
+import '../domain/value_objects/locale_config.dart';
 import '../domain/repositories/i_date_parser_repository.dart';
 
 /// [intl]-based implementation of [IDateParserRepository].
@@ -11,7 +12,20 @@ import '../domain/repositories/i_date_parser_repository.dart';
 /// The DateFormat instance cache is instance-level so isolated instances
 /// (e.g. in tests) do not share state.
 class IntlDateParserRepository implements IDateParserRepository {
+  IntlDateParserRepository({
+    String fallbackLocale = SupportedLocales.thai,
+  }) : _fallbackLocale = fallbackLocale;
+
   final Map<String, DateFormat> _formatCache = {};
+  String _fallbackLocale;
+
+  /// Changes the locale used when `intl` rejects a requested locale.
+  void setFallbackLocale(String locale) {
+    final normalized = _normalizeLocale(locale);
+    if (_fallbackLocale == normalized) return;
+    _fallbackLocale = normalized;
+    _formatCache.clear();
+  }
 
   @override
   ThaiDate? parse(
@@ -35,8 +49,17 @@ class IntlDateParserRepository implements IDateParserRepository {
     try {
       final dateFormat = _getOrCreateFormat(pattern.pattern, config.locale);
       final raw = dateFormat.parseStrict(input);
-      final normalised = _normaliseToCE(raw);
-      return ThaiDate.fromDateTime(normalised, era: config.era);
+      return ThaiDate.safe(
+        year: raw.year,
+        month: raw.month,
+        day: raw.day,
+        hour: raw.hour,
+        minute: raw.minute,
+        second: raw.second,
+        millisecond: raw.millisecond,
+        microsecond: raw.microsecond,
+        era: config.era,
+      );
     } catch (_) {
       return null;
     }
@@ -83,9 +106,19 @@ class IntlDateParserRepository implements IDateParserRepository {
     try {
       return locale.isEmpty ? DateFormat(pattern) : DateFormat(pattern, locale);
     } catch (_) {
-      // Fallback to simple pattern if locale-specific fails
-      return DateFormat(pattern);
+      try {
+        return DateFormat(pattern, _normalizeLocale(_fallbackLocale));
+      } on Object {
+        return DateFormat(pattern, SupportedLocales.thai);
+      }
     }
+  }
+
+  String _normalizeLocale(String locale) {
+    final trimmed = locale.trim();
+    return trimmed.isEmpty
+        ? SupportedLocales.defaultLocale
+        : Intl.canonicalizedLocale(trimmed);
   }
 
   /// Parse with multiple pattern fallbacks for intelligent parsing
