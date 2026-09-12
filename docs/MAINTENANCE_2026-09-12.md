@@ -33,7 +33,9 @@ snapshot. In the working repository, core's dry-run reports the expected
 uncommitted-file warning; this is not a publish authorization. Flutter 3.47.4
 was installed separately for verification. The default SDK was not upgraded.
 Application lockfiles remain resolved using Flutter 3.44.2; the new SDK's
-resolutions and automatic analysis-options migration stayed in the snapshot.
+dependency resolutions stayed in the snapshot. Picker's generated build-output
+exclusion is tracked explicitly because Flutter's automatic migration otherwise
+causes a dirty-worktree warning and fails the CI publish dry-run.
 No platform release builds or device tests were run.
 
 ## Release status and compatibility
