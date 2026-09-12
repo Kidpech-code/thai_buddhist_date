@@ -74,7 +74,7 @@ class ParseThaiDateUseCase {
     final pattern = ThaiDatePattern.get(patternKey);
 
     final cacheKey =
-        _buildCacheKey(normalizedInput, patternKey, effectiveConfig);
+        'explicit_${_buildCacheKey(normalizedInput, patternKey, effectiveConfig)}';
 
     // Check cache
     final cached = _cacheService.get<ThaiDate>(cacheKey);

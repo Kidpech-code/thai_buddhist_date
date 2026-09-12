@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:intl/intl.dart';
 import 'package:test/test.dart';
 import 'package:thai_buddhist_date/thai_buddhist_date.dart';
 
@@ -28,6 +29,115 @@ void main() {
       const invalid = ThaiDate(year: 2568, month: 2, day: 30);
       expect(invalid.isValid, isFalse);
     });
+  });
+
+  group('parser regression coverage', () {
+    setUp(() async => ThaiDateService().initializeLocale());
+
+    test('accepts Buddhist leap days in automatic and explicit modes', () {
+      final service = ThaiDateService();
+      for (final entry in {
+        'slash': '29/02/2567',
+        'iso': '2567-02-29',
+        'dmy': '29 กุมภาพันธ์ 2567',
+        "'2567' dd/MM/yyyy HH:mm:ss": '2567 29/02/2567 12:34:56',
+      }.entries) {
+        expect(
+            service.parse(entry.value, pattern: entry.key)?.toDateTime(),
+            entry.key.contains('HH')
+                ? DateTime(2024, 2, 29, 12, 34, 56)
+                : DateTime(2024, 2, 29));
+        service.clearCache();
+        expect(
+            service
+                .parseWithEra(entry.value, pattern: entry.key, era: Era.be)
+                ?.toDateTime(),
+            entry.key.contains('HH')
+                ? DateTime(2024, 2, 29, 12, 34, 56)
+                : DateTime(2024, 2, 29));
+      }
+    });
+
+    test('rejects invalid Buddhist dates and trailing input', () {
+      final service = ThaiDateService();
+      for (final input in [
+        '29/02/2568',
+        '29/02/2643',
+        '30/02/2567',
+        '31/04/2567',
+        '29/02/2567x'
+      ]) {
+        expect(service.parse(input, pattern: 'slash'), isNull, reason: input);
+        expect(
+            service.parseWithEra(input, pattern: 'slash', era: Era.be), isNull,
+            reason: input);
+      }
+      expect(service.parse('29/02/2543', pattern: 'slash')?.toDateTime(),
+          DateTime(2000, 2, 29));
+      expect(service.parse('29/02/2567')?.toDateTime(), DateTime(2024, 2, 29));
+    });
+
+    test('Buddhist February follows a complete Gregorian leap-year cycle', () {
+      final service = ThaiDateService();
+      for (var year = 2000; year < 2400; year++) {
+        final input = '29/02/${year + 543}';
+        final expected =
+            DateTime(year, 2, 29).month == 2 ? DateTime(year, 2, 29) : null;
+        expect(service.parse(input, pattern: 'slash')?.toDateTime(), expected,
+            reason: input);
+        expect(
+            service
+                .parseWithEra(input, pattern: 'slash', era: Era.be)
+                ?.toDateTime(),
+            expected,
+            reason: input);
+      }
+    });
+
+    test('preserves native digits and two-digit year interpretation', () async {
+      final service = ThaiDateService();
+      await service.initializeLocale('ar');
+      final input =
+          '${DateFormat('dd/MM', 'ar').format(DateTime(2024, 2, 29))}/${DateFormat('yyyy', 'ar').format(DateTime(2567))}';
+      expect(
+          service
+              .parseWithEra(input,
+                  pattern: 'dd/MM/yyyy', era: Era.be, locale: 'ar')
+              ?.toDateTime(),
+          DateTime(2024, 2, 29));
+      final shortYear = DateFormat('dd/MM/yy', 'en_US').parse('28/02/67').year;
+      expect(
+          service
+              .parseWithEra('28/02/67',
+                  pattern: 'dd/MM/yy', era: Era.be, locale: 'en_US')
+              ?.toDateTime(),
+          DateTime(shortYear - 543, 2, 28));
+      expect(
+          service
+              .parseWithEra('29/02/0543', pattern: 'slash', era: Era.be)
+              ?.toDateTime(),
+          DateTime(0, 2, 29));
+    });
+
+    for (final explicitFirst in [false, true]) {
+      test('parse modes do not share cache (explicit first: $explicitFirst)',
+          () {
+        final service = ThaiDateService();
+        ThaiDate? automatic() =>
+            service.parse('2568-08-25', pattern: 'iso', era: Era.ce);
+        ThaiDate? explicit() =>
+            service.parseWithEra('2568-08-25', pattern: 'iso', era: Era.ce);
+        if (explicitFirst) {
+          expect(explicit()?.year, 2568);
+          expect(automatic()?.year, 2025);
+        } else {
+          expect(automatic()?.year, 2025);
+          expect(explicit()?.year, 2568);
+        }
+        expect(automatic()?.year, 2025);
+        expect(explicit()?.year, 2568);
+      });
+    }
   });
 
   test('double era conversion matches integer conversion', () {

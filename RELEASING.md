@@ -36,8 +36,8 @@ git switch main
 git pull --ff-only
 
 # Core example
-git tag -a thai_buddhist_date-v0.4.0 -m "Release thai_buddhist_date 0.4.0"
-git push origin thai_buddhist_date-v0.4.0
+git tag -a thai_buddhist_date-v0.4.1 -m "Release thai_buddhist_date 0.4.1"
+git push origin thai_buddhist_date-v0.4.1
 
 # Picker example
 git tag -a thai_buddhist_date_pickers-v0.3.0 -m "Release thai_buddhist_date_pickers 0.3.0"

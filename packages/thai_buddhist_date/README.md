@@ -14,7 +14,7 @@ Pure Dart package สำหรับตรวจสอบ parse และ format
 
 ```yaml
 dependencies:
-  thai_buddhist_date: ^0.4.0
+  thai_buddhist_date: ^0.4.1
 ```
 
 ## Format และ parse
@@ -70,6 +70,20 @@ final output = await ThaiDateService().convert(
 );
 // 22 août 2568
 ```
+
+## Leap days and explicit input era
+
+```dart
+await ThaiDateService().initializeLocale('th_TH');
+final leapDay = ThaiDateService().parseWithEra(
+  '29/02/2567', pattern: 'dd/MM/yyyy', era: Era.be,
+);
+print(leapDay?.toDateTime()); // 2024-02-29 00:00:00.000
+// '29/02/2568' is invalid and returns null; it is never shifted to March.
+```
+
+`parseWithEra` interprets the input year in the specified era independently of
+previous automatic parsing calls.
 
 ## Extensions
 
