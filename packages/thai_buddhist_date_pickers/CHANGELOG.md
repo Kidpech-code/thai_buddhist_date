@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.3.0 - 2026-07-17
+## 0.3.0 - 2026-09-12
+
+- Exclude generated build output explicitly so Flutter 3.47 does not rewrite
+  analyzer configuration during CI or publishing.
 
 - Validate date bounds and every initial selection across single, date-time,
   range, multi-date, formatted, and fullscreen variants.

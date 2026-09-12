@@ -32,12 +32,10 @@ class IntlDateParserRepository implements IDateParserRepository {
       String input, ThaiDatePattern pattern, ThaiDateConfig config) {
     try {
       final dateFormat = _getOrCreateFormat(pattern.pattern, config.locale);
-      final raw = dateFormat.parseStrict(input);
-      final normalised = _normaliseToCE(raw);
-      final detectedEra = _detectEra(input, config.era);
-      var result = ThaiDate.fromDateTime(normalised, era: detectedEra);
-      if (result.era != config.era) result = result.toEra(config.era);
-      return result;
+      final rawYear = dateFormat.parse(input).year;
+      final inputEra = Era.be.isLikelyYear(rawYear) ? Era.be : Era.ce;
+      final date = _parseInEra(input, dateFormat, inputEra);
+      return ThaiDate.fromDateTime(date, era: config.era);
     } catch (_) {
       return null;
     }
@@ -48,18 +46,8 @@ class IntlDateParserRepository implements IDateParserRepository {
       String input, ThaiDatePattern pattern, ThaiDateConfig config) {
     try {
       final dateFormat = _getOrCreateFormat(pattern.pattern, config.locale);
-      final raw = dateFormat.parseStrict(input);
-      return ThaiDate.safe(
-        year: raw.year,
-        month: raw.month,
-        day: raw.day,
-        hour: raw.hour,
-        minute: raw.minute,
-        second: raw.second,
-        millisecond: raw.millisecond,
-        microsecond: raw.microsecond,
-        era: config.era,
-      );
+      final date = _parseInEra(input, dateFormat, config.era);
+      return ThaiDate.fromDateTime(date, era: config.era);
     } catch (_) {
       return null;
     }
@@ -70,31 +58,55 @@ class IntlDateParserRepository implements IDateParserRepository {
     return parse(input, pattern, config) != null;
   }
 
-  Era _detectEra(String input, Era defaultEra) {
-    final yearMatch = RegExp(r'(\d{4})').firstMatch(input);
-    if (yearMatch != null) {
-      final year = int.tryParse(yearMatch.group(1)!);
-      if (year != null) {
-        if (Era.be.isLikelyYear(year)) return Era.be;
-        if (Era.ce.isLikelyYear(year)) return Era.ce;
+  DateTime _parseInEra(String input, DateFormat format, Era era) {
+    if (era == Era.ce) return format.parseStrict(input);
+
+    // Read the year without validating February against the Buddhist year.
+    // Validation still uses intl's strict parser, with the actual Gregorian
+    // year. For CE years <= 0, use a positive year in the same 400-year leap
+    // cycle because intl only reads unsigned year fields.
+    final rawYear = format.parse(input).year;
+    final ceYear = era.toCE(rawYear);
+    final validationYear = ceYear > 0 ? ceYear : 2000 + ceYear % 400;
+    final zero = format.dateSymbols.ZERODIGIT?.codeUnitAt(0) ?? 48;
+    final digits = RegExp(
+        '[0-9${String.fromCharCode(zero)}-${String.fromCharCode(zero + 9)}]+');
+    for (final match in digits.allMatches(input)) {
+      final token = match.group(0)!;
+      final ascii = String.fromCharCodes(token.codeUnits.map(
+        (c) => c >= zero && c <= zero + 9 ? c - zero + 48 : c,
+      ));
+      final value = int.parse(ascii);
+      if (value != rawYear && !(token.length == 2 && value == rawYear % 100)) {
+        continue;
+      }
+      try {
+        final adjusted =
+            input.replaceRange(match.start, match.end, '$validationYear');
+        final date = format.parseStrict(adjusted);
+        // Only accept replacing a year field, never a numeric quoted literal,
+        // day, or time field that happens to contain the same digits.
+        if (date.year != validationYear) continue;
+        return DateTime(ceYear, date.month, date.day, date.hour, date.minute,
+            date.second, date.millisecond, date.microsecond);
+      } on FormatException {
+        continue;
       }
     }
-    return defaultEra;
-  }
 
-  /// Converts a [DateTime] whose year may be a BE year into a CE [DateTime].
-  DateTime _normaliseToCE(DateTime raw) {
-    if (!Era.be.isLikelyYear(raw.year)) return raw;
-    return DateTime(
-      Era.be.toCE(raw.year),
-      raw.month,
-      raw.day,
-      raw.hour,
-      raw.minute,
-      raw.second,
-      raw.millisecond,
-      raw.microsecond,
-    );
+    // Patterns without a year retain intl's default year behavior.
+    final raw = format.parseStrict(input);
+    return ThaiDate.safe(
+      year: raw.year,
+      month: raw.month,
+      day: raw.day,
+      hour: raw.hour,
+      minute: raw.minute,
+      second: raw.second,
+      millisecond: raw.millisecond,
+      microsecond: raw.microsecond,
+      era: era,
+    ).toDateTime();
   }
 
   DateFormat _getOrCreateFormat(String pattern, String locale) {

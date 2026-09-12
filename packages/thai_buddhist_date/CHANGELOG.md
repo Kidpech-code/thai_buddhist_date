@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.1 - 2026-09-12
+
+- Validate Buddhist leap days against the corresponding Gregorian year in both
+  automatic and explicit-era parsing, including localized and custom patterns.
+- Reject impossible Buddhist dates instead of silently rolling into March.
+- Separate automatic and explicit-era parse caches so call order cannot change
+  the interpreted year.
+- Avoid deprecated compatibility helpers internally so older Dart analyzers
+  can check the core without deprecation diagnostics.
+- Public signatures are unchanged. Invalid dates that previously rolled forward
+  now return `null`; remove any workaround for rejected valid Buddhist leap days.
+
 ## 0.4.0 - 2026-07-17
 
 - Reject impossible month/day combinations in `ThaiDate.safe` and report them

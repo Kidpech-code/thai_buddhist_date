@@ -37,7 +37,7 @@ const Era commonEra = Era.ce;
 const String thaiLocale = 'th_TH';
 const String englishLocale = 'en_US';
 
-const String version = '0.4.0';
+const String version = '0.4.1';
 @Deprecated(
   'Architecture is an implementation detail. Planned removal in 0.5.0.',
 )

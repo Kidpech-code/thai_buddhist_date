@@ -95,14 +95,14 @@ class ThaiDatePattern {
       other is ThaiDatePattern &&
           runtimeType == other.runtimeType &&
           pattern == other.pattern &&
-          const ListEquality<ThaiDatePart>().equals(parts, other.parts) &&
+          const _ListEquality<ThaiDatePart>().equals(parts, other.parts) &&
           separator == other.separator &&
           monthShort == other.monthShort;
 
   @override
   int get hashCode => Object.hash(
         pattern,
-        const ListEquality<ThaiDatePart>().hash(parts),
+        const _ListEquality<ThaiDatePart>().hash(parts),
         separator,
         monthShort,
       );
@@ -113,8 +113,12 @@ class ThaiDatePattern {
   'Use package:collection or record equality instead. '
   'Planned removal in 0.5.0.',
 )
-class ListEquality<T> {
+class ListEquality<T> extends _ListEquality<T> {
   const ListEquality();
+}
+
+class _ListEquality<T> {
+  const _ListEquality();
 
   bool equals(List<T>? list1, List<T>? list2) {
     if (identical(list1, list2)) return true;
